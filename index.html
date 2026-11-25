@@ -11,27 +11,59 @@
 
 body{
     margin:0;
-    background:#f3f6f8;
-    color:#17333c;
-    font:16px system-ui,sans-serif
+    background:linear-gradient(135deg,#e8f1eb,#faf7ee);
+    color:#173e35;
+    font:16px system-ui,sans-serif;
+    min-height:100vh
 }
 
 main{
-    max-width:900px;
+    max-width:940px;
     margin:auto;
-    padding:24px 16px
+    padding:30px 18px
 }
 
-h1{font-size:28px;margin:8px 0}
-h2{font-size:19px}
-small,.muted{color:#60777d}
+header{
+    padding:30px 26px;
+    background:linear-gradient(120deg,#174c40,#327968);
+    color:white;
+    border-radius:26px;
+    box-shadow:0 12px 35px #174c4020
+}
+
+header small{
+    color:#d3e7d8;
+    letter-spacing:2px
+}
+
+h1{
+    font-size:clamp(26px,5vw,38px);
+    margin:12px 0
+}
+
+h2{
+    font-size:19px;
+    margin-top:0
+}
+
+p{line-height:1.7}
+
+small,.muted{color:#647d73}
 
 section{
-    background:white;
-    border:1px solid #dce6e8;
-    border-radius:20px;
-    padding:22px;
-    margin:16px 0
+    background:#ffffffed;
+    border:1px solid #dce7de;
+    border-radius:22px;
+    padding:24px;
+    margin:18px 0;
+    box-shadow:0 6px 22px #174c4008
+}
+
+.row{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    align-items:center
 }
 
 .stats{
@@ -41,67 +73,124 @@ section{
 }
 
 .stat{
-    background:#edf5f3;
-    padding:14px;
-    border-radius:12px
+    background:#edf5ef;
+    padding:18px;
+    border-radius:15px;
+    font-size:14px
 }
 
 .stat strong{
     display:block;
-    font-size:24px;
-    margin-top:8px
+    font-size:clamp(18px,3vw,26px);
+    margin-top:10px
 }
 
 .track{
     height:12px;
-    background:#e1eae9;
+    background:#e5ece5;
     border-radius:20px;
     overflow:hidden;
-    margin:16px 0
+    margin:20px 0
 }
 
 .bar{
     height:100%;
-    background:#168477;
+    background:linear-gradient(90deg,#398e70,#a2b97b);
     width:0;
-    transition:width .3s
+    transition:width .4s
 }
 
 .timer{text-align:center}
 
-.clock{
-    font-size:clamp(64px,15vw,112px);
-    font-weight:700;
-    font-variant-numeric:tabular-nums;
-    letter-spacing:-4px;
-    margin:20px 0
+.timer .row{justify-content:center}
+
+/* 环形倒计时 */
+
+.dial{
+    --progress:0deg;
+    width:260px;
+    height:260px;
+    max-width:85vw;
+    max-height:85vw;
+    aspect-ratio:1;
+    margin:24px auto;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    background:conic-gradient(
+        #388b70 var(--progress),
+        #e8efe9 0
+    );
+    padding:9px
 }
 
-.row{
+.dial-inner{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    background:#fff;
     display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    align-items:center
+    flex-direction:column;
+    align-items:center;
+    justify-content:center
 }
+
+.clock{
+    font-size:clamp(44px,10vw,72px);
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-3px
+}
+
+/* 正向鼓励语 */
+
+.quote{
+    background:#f8f5e9;
+    border:1px solid #e9dfbf;
+    border-radius:18px;
+    padding:20px;
+    margin:18px 0
+}
+
+.quote small{
+    color:#8c7845;
+    letter-spacing:1px
+}
+
+.quote p{
+    font-size:19px;
+    margin:12px 0;
+    color:#465b43
+}
+
+.quote .row{
+    justify-content:space-between
+}
+
+/* 按钮与输入框 */
 
 button,input,textarea{
     font:inherit;
-    border-radius:10px;
-    padding:12px;
-    border:1px solid #cbdad9
+    border:1px solid #cbdcd2;
+    border-radius:11px;
+    padding:11px
 }
 
 button{
     cursor:pointer;
-    background:#eaf3f1;
-    color:#17554e;
+    background:#edf5ef;
+    color:#235b49;
     font-weight:600
 }
 
+button:hover:not(:disabled){
+    filter:brightness(.95)
+}
+
 button.primary{
-    background:#14796e;
+    background:#23735c;
     color:white;
-    border-color:#14796e
+    border-color:#23735c
 }
 
 button:disabled{
@@ -109,19 +198,41 @@ button:disabled{
     cursor:default
 }
 
-input[type=number]{width:95px}
+input[type=number]{
+    width:85px
+}
 
 input[type=text],textarea{
     width:100%;
-    margin:6px 0 12px
+    margin:8px 0 14px
 }
 
 textarea{resize:vertical}
+
 label{font-size:14px}
-.timer .row{justify-content:center}
+
+input[type=range]{
+    width:90px;
+    padding:0;
+    accent-color:#23735c
+}
+
+input[type=checkbox]{
+    accent-color:#23735c
+}
+
+/* 音乐提醒 */
+
+.sound{
+    border-top:1px solid #e1eae4;
+    padding-top:18px;
+    margin-top:20px
+}
+
+/* 阅读记录 */
 
 .entry{
-    border-top:1px solid #e1eae9;
+    border-top:1px solid #e1eae4;
     padding:14px 0;
     overflow-wrap:anywhere
 }
@@ -131,55 +242,42 @@ label{font-size:14px}
     margin:6px 0
 }
 
-.entry button{padding:5px 10px}
+.entry button{
+    padding:5px 10px
+}
+
+/* 成长里程碑 */
+
+.milestones{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap
+}
+
+.milestones span{
+    border:1px solid #dce7de;
+    border-radius:20px;
+    padding:7px 12px;
+    font-size:13px;
+    color:#74877c
+}
+
+.milestones .earned{
+    background:#f5ebc9;
+    color:#775b20;
+    border-color:#e5d19b
+}
 
 footer{
     font-size:13px;
-    color:#60777d;
-    line-height:1.7
+    color:#647d73;
+    line-height:1.8
 }
 
-/* 新增：音乐提醒设置 */
-
-.sound-settings{
-    margin-top:20px;
-    padding-top:16px;
-    border-top:1px solid #e1eae9;
-    justify-content:center;
-    gap:16px
-}
-
-.sound-settings label{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    color:#60777d
-}
-
-.sound-settings input[type=checkbox]{
-    accent-color:#14796e;
-    width:17px;
-    height:17px
-}
-
-.sound-settings input[type=range]{
-    width:85px;
-    accent-color:#14796e;
-    padding:0
-}
-
-.sound-settings button{
-    font-size:13px;
-    padding:8px 12px
-}
-
-.sound-message{
-    font-size:12px;
-    color:#60777d;
-    margin-top:10px
-}
+/* 手机响应式设计 */
 
 @media(max-width:520px){
+
     .stats{
         grid-template-columns:1fr 1fr
     }
@@ -188,12 +286,12 @@ footer{
         grid-column:span 2
     }
 
-    .stat strong{font-size:22px}
-    section{padding:16px}
-    button{min-height:44px}
+    section{
+        padding:16px
+    }
 
-    .sound-settings{
-        gap:12px
+    button{
+        min-height:44px
     }
 }
 </style>
@@ -202,31 +300,50 @@ footer{
 <body>
 <main>
 
-<small>ACADEMIC READING TRACKER · 100H CHALLENGE</small>
+<!-- 网页标题 -->
 
-<h1>100 小时论文阅读挑战</h1>
+<header>
 
-<p class="muted">
-每天积累一点，让阅读成为持续的研究习惯。
-</p>
+    <small>
+        ACADEMIC READING · 100H CHALLENGE
+    </small>
+
+    <h1>100 小时论文阅读挑战</h1>
+
+    <p>
+        让每一次阅读，成为研究成长的一小步。
+    </p>
+
+</header>
+
 
 <!-- Google 登入 -->
 
 <section>
+
     <div class="row">
+
         <button id="login" class="primary">
             Google 登入
         </button>
 
-        <button id="logout">登出</button>
+        <button id="logout">
+            登出
+        </button>
 
-        <span id="cloud">尚未登入</span>
+        <span id="cloud">
+            尚未登入
+        </span>
+
     </div>
+
 </section>
+
 
 <!-- 阅读统计 -->
 
 <section>
+
     <div class="stats">
 
         <div class="stat">
@@ -251,38 +368,77 @@ footer{
     </div>
 
     <div class="row">
+
         <span id="today"></span>
+
         ·
+
         <span id="week"></span>
+
         ·
+
         <span id="month"></span>
+
     </div>
+
+    <h2 style="margin-top:24px">
+        成长里程碑
+    </h2>
+
+    <div id="milestones"
+         class="milestones">
+    </div>
+
 </section>
 
-<!-- 番茄钟计时器 -->
+
+<!-- 番茄钟 -->
 
 <section class="timer">
 
     <div class="row">
-        <button id="focus">论文阅读</button>
-        <button id="rest">休息模式</button>
+
+        <button id="focus">
+            论文阅读
+        </button>
+
+        <button id="rest">
+            休息模式
+        </button>
+
     </div>
 
-    <div class="clock" id="clock">25:00</div>
+    <div class="dial" id="dial">
 
-    <div id="status"
-         class="muted"
-         aria-live="polite">
-        准备开始
+        <div class="dial-inner">
+
+            <small id="modeLabel">
+                专注阅读
+            </small>
+
+            <div class="clock" id="clock">
+                25:00
+            </div>
+
+            <div id="status"
+                 class="muted"
+                 aria-live="polite">
+                准备开始
+            </div>
+
+        </div>
+
     </div>
 
-    <div class="row" style="margin:20px 0">
+    <div class="row">
 
         <button class="primary" id="start">
             开始
         </button>
 
-        <button id="pause">暂停</button>
+        <button id="pause">
+            暂停
+        </button>
 
         <button id="finish">
             结束并保存
@@ -290,10 +446,41 @@ footer{
 
     </div>
 
+
+    <!-- 动态鼓励语 -->
+
+    <div class="quote">
+
+        <small>
+            ✦ 给正在成长的自己
+        </small>
+
+        <p id="quote"
+           aria-live="polite">
+        </p>
+
+        <div class="row">
+
+            <small id="quoteKind">
+                每日鼓励
+            </small>
+
+            <button id="nextQuote">
+                换一句
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- 时间设置 -->
+
     <div class="row">
 
         <label>
             阅读（分钟）
+
             <input id="focusMin"
                    type="number"
                    min="1"
@@ -303,6 +490,7 @@ footer{
 
         <label>
             休息（分钟）
+
             <input id="restMin"
                    type="number"
                    min="1"
@@ -312,26 +500,33 @@ footer{
 
     </div>
 
-    <!-- 新增：声音提醒控制 -->
 
-    <div class="row sound-settings">
+    <!-- 音乐设置 -->
+
+    <div class="row sound">
 
         <label>
+
             <input type="checkbox"
                    id="soundEnabled"
                    checked>
+
             温和音乐提醒
+
         </label>
 
         <label>
+
             音量
+
             <input type="range"
                    id="soundVolume"
                    min="0"
                    max="100"
                    value="35">
 
-            <span id="volumeText">35%</span>
+            <span id="volumeText"></span>
+
         </label>
 
         <button id="previewSound">
@@ -340,11 +535,12 @@ footer{
 
     </div>
 
-    <div class="sound-message" id="soundMessage">
-        倒计时结束后，将播放柔和的轻音乐。
-    </div>
+    <small id="soundMessage">
+        倒计时结束后播放柔和旋律。
+    </small>
 
 </section>
+
 
 <!-- 阅读内容 -->
 
@@ -368,21 +564,23 @@ footer{
               rows="4"
               placeholder="研究目的、理论架构、研究方法、主要发现……"></textarea>
 
-    <small>
-        修改内容后请点击保存。
-        <button id="saveNotes">
-            保存阅读内容
-        </button>
-    </small>
+    <button id="saveNotes">
+        保存阅读内容
+    </button>
 
 </section>
 
-<!-- 阅读历史 -->
+
+<!-- 阅读记录 -->
 
 <section>
+
     <h2>阅读记录</h2>
+
     <div id="history"></div>
+
 </section>
+
 
 <!-- 数据管理 -->
 
@@ -409,17 +607,20 @@ footer{
 
 </section>
 
+
 <footer>
+
     数据储存在 Firebase 云端。
     登入同一账号即可同步。
     离线时不允许修改计时状态。
-    手机锁屏或切换应用时，计时依据实际时间计算，
-    但结束提醒可能延迟至重新打开网页。
-    休息时间不计入100小时目标。
-    关闭网页后无法播放提醒音乐。
+    手机锁屏或后台分页可能延迟提醒；
+    关闭网页后无法播放音乐。
+    休息不计入100小时目标。
+
 </footer>
 
 </main>
+
 
 <script type="module">
 
@@ -448,17 +649,23 @@ import {
 
 
 // ========================================
-// 2. Firebase 配置
-// 保留原本的 Firebase 项目
+// 2. Firebase 原本配置
 // ========================================
 
 const firebaseConfig = {
+
     apiKey:'AIzaSyAUCGhlRImAl0pGKTREJDRuMudLWzalKY0',
+
     authDomain:'academic-reading-100h.firebaseapp.com',
+
     projectId:'academic-reading-100h',
+
     storageBucket:'academic-reading-100h.firebasestorage.app',
+
     messagingSenderId:'256036072128',
+
     appId:'1:256036072128:web:b5f06bcebbe04b0321db25'
+
 };
 
 
@@ -470,96 +677,349 @@ const $ = id => document.getElementById(id);
 
 const GOAL = 360000;
 
-const ORIGINAL_TITLE = '100小时论文阅读挑战';
+const TITLE = '100小时论文阅读挑战';
 
 const fresh = () => ({
+
     logs:[],
+
     focus:25,
+
     rest:5,
+
     mode:'focus',
+
     elapsed:0,
+
     since:null,
+
     paper:'',
+
     notes:''
+
 });
 
 let d = fresh();
 
 let ref = null;
+
 let unsub = null;
+
 let ready = false;
+
 let busy = false;
+
 let dirty = false;
+
 let auth;
+
 let db;
 
+let watched = null;
 
-// ========================================
-// 4. 声音提醒系统
-// ========================================
+let alarmKey = '';
 
-let audioCtx = null;
-let activeAudio = null;
-let lastAlarmKey = null;
 let completedUntil = 0;
+
 let completedMode = 'focus';
-let watchedTimer = null;
 
-function getPreference(key, fallback) {
-    try {
-        return localStorage.getItem(key) ?? fallback;
-    } catch {
-        return fallback;
-    }
+
+// ========================================
+// 4. 正向鼓励语数据库（60句）
+// ========================================
+
+const quotes = {
+
+    // 每日鼓励：16句
+
+    daily:[
+
+        '今天的阅读，是明天思考的养分。',
+
+        '不必一次读懂所有，只需比昨天多理解一点。',
+
+        '每一页都是向未知世界迈出的一步。',
+
+        '知识的积累，往往发生在安静而平凡的日子。',
+
+        '保持好奇，答案会在探索中逐渐清晰。',
+
+        '研究不是比赛，而是一场持续的探索。',
+
+        '你的每一次专注，都在为未来积累可能性。',
+
+        '慢慢读，认真想，允许理解逐渐发生。',
+
+        '今天留下的一个问题，可能是明天研究的起点。',
+
+        '把阅读变成习惯，把思考变成力量。',
+
+        '不必追求完美的进度，持续前进就有意义。',
+
+        '每一篇论文都是与另一位研究者的对话。',
+
+        '用耐心对待复杂，用好奇面对未知。',
+
+        '真正的进步，也包括发现自己还不懂什么。',
+
+        '你的研究视野正在一点一点拓宽。',
+
+        '阅读的价值不只在数量，也在理解与连接。'
+
+    ],
+
+
+    // 专注阅读：12句
+
+    focus:[
+
+        '先专注眼前这一段，其他事情稍后再处理。',
+
+        '试着找出作者真正想回答的问题。',
+
+        '读懂一个概念，比匆忙翻过十页更有价值。',
+
+        '遇到难懂的地方，写下问题，再继续探索。',
+
+        '让证据引导判断，让问题推动思考。',
+
+        '试着用自己的话解释刚刚读到的内容。',
+
+        '每一次重新理解，都是知识结构的更新。',
+
+        '专注当下，不必担心尚未完成的部分。',
+
+        '把复杂的问题拆成可以理解的小问题。',
+
+        '比较不同研究的证据，而不只是结论。',
+
+        '今天的思考，可能成为未来课堂的新灵感。',
+
+        '允许自己慢一点，深入理解值得花时间。'
+
+    ],
+
+
+    // 暂停鼓励：8句
+
+    pause:[
+
+        '暂时停下来，也可以是有效的学习策略。',
+
+        '给自己一点空间，准备好再继续。',
+
+        '进度仍然在这里，不必急于追赶。',
+
+        '调整节奏，也是持续学习的一部分。',
+
+        '先整理思绪，再迈出下一步。',
+
+        '不必责备自己，选择下一件可以完成的小事。',
+
+        '学习有起伏，重要的是找到适合自己的节奏。',
+
+        '暂停不是否定已经付出的努力。'
+
+    ],
+
+
+    // 休息鼓励：8句
+
+    rest:[
+
+        '休息是学习的一部分，不是学习的对立面。',
+
+        '喝一点水，让眼睛离开屏幕。',
+
+        '放松肩膀，给自己几分钟安静的时间。',
+
+        '适当休息，为下一轮专注做好准备。',
+
+        '让刚刚阅读的知识有一点沉淀的空间。',
+
+        '暂时放下论文，享受这一刻的轻松。',
+
+        '照顾好自己的状态，才能走得更长远。',
+
+        '今天不需要把所有事情一次完成。'
+
+    ],
+
+
+    // 阅读完成：12句
+
+    done:[
+
+        '又完成了一次专注，值得肯定。',
+
+        '你刚刚为自己的研究目标付出了实际行动。',
+
+        '每一段阅读时间，都让目标更接近。',
+
+        '试着记录今天最有价值的一个发现。',
+
+        '为自己的坚持留下一份小小的肯定。',
+
+        '从阅读到理解，从理解到应用，你正在前进。',
+
+        '完成一轮只是开始，新的想法值得继续探索。',
+
+        '今天的努力已经留下了真实的记录。',
+
+        '不论读了多少，认真思考的时间都有价值。',
+
+        '带着新的问题，迎接下一次阅读。',
+
+        '你正在建立属于自己的学术成长轨迹。',
+
+        '把这份专注带进未来的研究与教学。'
+
+    ],
+
+
+    // 成长里程碑：4句
+
+    milestone:[
+
+        '每一个里程碑，都是许多平凡时刻的积累。',
+
+        '回顾已经走过的路，也看看新获得的理解。',
+
+        '值得庆祝的不只是时间，还有持续行动的习惯。',
+
+        '阶段目标已经达成，按自己的节奏继续前进。'
+
+    ]
+
+};
+
+
+// ========================================
+// 5. 动态鼓励语系统
+// ========================================
+
+let kind = 'daily';
+
+let lastQuote = '';
+
+function encourage(k = kind){
+
+    kind = k;
+
+    const pool = quotes[k] || quotes.daily;
+
+    const choices = pool.filter(
+        q => q !== lastQuote
+    );
+
+    lastQuote = choices[
+        Math.floor(
+            Math.random()*choices.length
+        )
+    ];
+
+    $('quote').textContent = lastQuote;
+
+    $('quoteKind').textContent = ({
+
+        daily:'每日鼓励',
+
+        focus:'专注与研究',
+
+        pause:'调整节奏',
+
+        rest:'温柔休息',
+
+        done:'完成鼓励',
+
+        milestone:'成长里程碑'
+
+    })[k];
+
 }
 
-function setPreference(key, value) {
-    try {
-        localStorage.setItem(key, value);
-    } catch {}
-}
+$('nextQuote').onclick = () => encourage();
 
-// 读取本机声音设置
+encourage();
 
-$('soundEnabled').checked =
-    getPreference('readingSoundEnabled','true') !== 'false';
+let lastState = '';
 
-$('soundVolume').value =
-    getPreference('readingSoundVolume','35');
-
-$('volumeText').textContent =
-    $('soundVolume').value + '%';
+let lastMilestone = null;
 
 
-// 初始化浏览器声音权限
+// ========================================
+// 6. 声音设置储存
+// ========================================
 
-async function unlockAudio(){
+function pref(k,v){
 
     try{
 
-        if(!audioCtx){
+        return localStorage.getItem(k) ?? v;
 
-            const AudioContext =
-                window.AudioContext ||
-                window.webkitAudioContext;
+    }catch{
 
-            if(!AudioContext){
-                return false;
-            }
+        return v;
 
-            audioCtx = new AudioContext();
+    }
+
+}
+
+function savePref(k,v){
+
+    try{
+
+        localStorage.setItem(k,v);
+
+    }catch{}
+
+}
+
+$('soundEnabled').checked =
+
+    pref(
+        'readingSoundEnabled',
+        'true'
+    ) !== 'false';
+
+$('soundVolume').value =
+
+    pref(
+        'readingSoundVolume',
+        '35'
+    );
+
+$('volumeText').textContent =
+
+    $('soundVolume').value + '%';
+
+let ctx;
+
+let master;
+
+
+// ========================================
+// 7. 温和轻音乐系统
+// ========================================
+
+async function unlock(){
+
+    try{
+
+        ctx = ctx || new(
+            window.AudioContext ||
+            window.webkitAudioContext
+        )();
+
+        if(ctx.state !== 'running'){
+
+            await ctx.resume();
 
         }
 
-        if(audioCtx.state === 'suspended'){
-            await audioCtx.resume();
-        }
+        return ctx.state === 'running';
 
-        return audioCtx.state === 'running';
-
-    }catch(error){
-
-        console.warn('声音初始化失败',error);
+    }catch{
 
         return false;
 
@@ -568,193 +1028,167 @@ async function unlockAudio(){
 }
 
 
-// 停止音乐
+function stop(){
 
-function stopMusic(){
+    if(master && ctx){
 
-    if(activeAudio && audioCtx){
-
-        activeAudio.gain.cancelScheduledValues(
-            audioCtx.currentTime
-        );
-
-        activeAudio.gain.setTargetAtTime(
+        master.gain.setTargetAtTime(
             0,
-            audioCtx.currentTime,
-            0.05
+            ctx.currentTime,
+            .04
         );
 
-        activeAudio = null;
+        master = null;
 
     }
 
 }
 
 
-// 播放温和轻音乐
+async function music(preview = false){
 
-async function playGentleMusic(preview = false){
-
-    if(!preview && !$('soundEnabled').checked){
-        return;
-    }
-
-    if(!(await unlockAudio())){
-
-        $('soundMessage').textContent =
-            '浏览器尚未允许播放声音，请点击试听音乐。';
-
-        return;
-
-    }
-
-    stopMusic();
-
-    const now = audioCtx.currentTime;
-
-    const volume =
-        Number($('soundVolume').value) / 100;
-
-    const master = audioCtx.createGain();
-
-    master.gain.value = volume * 0.45;
-
-    master.connect(audioCtx.destination);
-
-    activeAudio = master;
-
-    $('soundMessage').textContent =
-        preview ? '正在试听温和轻音乐……' :
-                  '计时结束，辛苦了！';
-
-    // 原创舒缓旋律
-    // 频率、开始时间、持续时间
-
-    const melody = [
-
-        [261.63,0.00,1.80],
-        [329.63,0.65,1.80],
-        [392.00,1.30,2.00],
-        [523.25,2.10,2.20],
-        [440.00,3.00,1.80],
-        [392.00,3.80,1.80],
-        [329.63,4.60,2.00],
-        [261.63,5.50,2.50]
-
-    ];
-
-    // 生成柔和的音符
-
-    function playNote(
-        frequency,
-        offset,
-        length,
-        strength = 0.32
+    if(
+        !preview &&
+        !$('soundEnabled').checked
     ){
 
-        const start = now + offset;
-        const end = start + length;
+        return;
 
-        const oscillator =
-            audioCtx.createOscillator();
+    }
 
-        const harmonic =
-            audioCtx.createOscillator();
+    if(!await unlock()){
 
-        const envelope =
-            audioCtx.createGain();
+        $('soundMessage').textContent =
+            '请点击试听以启用声音。';
 
-        const harmonicGain =
-            audioCtx.createGain();
+        return;
 
-        oscillator.type = 'sine';
+    }
 
-        oscillator.frequency.value =
-            frequency;
+    stop();
 
-        harmonic.type = 'sine';
+    const out = ctx.createGain();
 
-        harmonic.frequency.value =
-            frequency * 2;
+    master = out;
 
-        harmonicGain.gain.value = 0.12;
+    out.gain.value =
+        +$('soundVolume').value/100*.45;
 
-        oscillator.connect(envelope);
+    out.connect(ctx.destination);
 
-        harmonic.connect(harmonicGain);
+    const now = ctx.currentTime;
 
-        harmonicGain.connect(envelope);
 
-        envelope.connect(master);
+    // 柔和音符
 
-        // 音量渐入渐出
+    function note(f,t,len,v){
 
-        envelope.gain.setValueAtTime(
-            0.0001,
-            start
+        const o = ctx.createOscillator();
+
+        const g = ctx.createGain();
+
+        o.type = 'sine';
+
+        o.frequency.value = f;
+
+        o.connect(g);
+
+        g.connect(out);
+
+        const s = now+t;
+
+        g.gain.setValueAtTime(
+            .0001,
+            s
         );
 
-        envelope.gain.exponentialRampToValueAtTime(
-            strength,
-            start + 0.12
+        g.gain.exponentialRampToValueAtTime(
+            v,
+            s+.12
         );
 
-        envelope.gain.exponentialRampToValueAtTime(
-            strength * 0.32,
-            start + 0.45
+        g.gain.exponentialRampToValueAtTime(
+            v*.32,
+            s+.45
         );
 
-        envelope.gain.exponentialRampToValueAtTime(
-            0.0001,
-            end
+        g.gain.exponentialRampToValueAtTime(
+            .0001,
+            s+len
         );
 
-        oscillator.start(start);
-        harmonic.start(start);
+        o.start(s);
 
-        oscillator.stop(end + 0.05);
-        harmonic.stop(end + 0.05);
+        o.stop(s+len+.05);
 
-        oscillator.onended = () => {
-            oscillator.disconnect();
-            harmonic.disconnect();
-            harmonicGain.disconnect();
-            envelope.disconnect();
+        o.onended = () => {
+
+            o.disconnect();
+
+            g.disconnect();
+
         };
 
     }
 
-    // 主旋律
 
-    melody.forEach(([frequency,offset,length])=>{
+    // 原创主旋律
 
-        playNote(
-            frequency,
-            offset,
-            length
-        );
+    [
 
-    });
+        [261.63,0,1.8],
 
-    // 低音伴奏，营造放松的感觉
+        [329.63,.65,1.8],
 
-    playNote(130.81,0,3.5,0.12);
-    playNote(196.00,2.1,3.5,0.10);
-    playNote(174.61,3.8,3.0,0.10);
-    playNote(130.81,5.5,2.5,0.12);
+        [392,1.3,2],
 
-    // 播放完成后释放声音节点
+        [523.25,2.1,2.2],
 
-    setTimeout(()=>{
+        [440,3,1.8],
 
-        master.disconnect();
+        [392,3.8,1.8],
 
-        if(activeAudio === master){
+        [329.63,4.6,2],
 
-            activeAudio = null;
+        [261.63,5.5,2.5]
+
+    ].forEach(n => note(...n,.32));
+
+
+    // 低音伴奏
+
+    [
+
+        [130.81,0,3.5],
+
+        [196,2.1,3.5],
+
+        [174.61,3.8,3],
+
+        [130.81,5.5,2.5]
+
+    ].forEach(n => note(...n,.1));
+
+
+    $('soundMessage').textContent =
+
+        preview
+        ? '正在试听……'
+        : '计时结束！';
+
+
+    // 音乐播放结束
+
+    setTimeout(() => {
+
+        out.disconnect();
+
+        if(master === out){
+
+            master = null;
 
             $('soundMessage').textContent =
-                '倒计时结束后，将播放柔和的轻音乐。';
+                '倒计时结束后播放柔和旋律。';
 
         }
 
@@ -763,54 +1197,52 @@ async function playGentleMusic(preview = false){
 }
 
 
+// 试听音乐
+
+$('previewSound').onclick = () => music(true);
+
+
 // 声音开关
 
-$('soundEnabled').onchange = ()=>{
+$('soundEnabled').onchange = () => {
 
-    setPreference(
+    savePref(
         'readingSoundEnabled',
-        String($('soundEnabled').checked)
+        $('soundEnabled').checked
     );
 
     if(!$('soundEnabled').checked){
 
-        stopMusic();
-
-        $('soundMessage').textContent =
-            '声音提醒已关闭。';
+        stop();
 
     }else{
 
-        unlockAudio();
-
-        $('soundMessage').textContent =
-            '声音提醒已开启。';
+        unlock();
 
     }
 
 };
 
 
-// 音量调整
+// 音量调节
 
-$('soundVolume').oninput = ()=>{
+$('soundVolume').oninput = () => {
 
-    const value = $('soundVolume').value;
+    let v = $('soundVolume').value;
 
-    $('volumeText').textContent =
-        value + '%';
+    $('volumeText').textContent = v+'%';
 
-    setPreference(
+    savePref(
         'readingSoundVolume',
-        value
+        v
     );
 
-    if(activeAudio && audioCtx){
+    if(master && ctx){
 
-        activeAudio.gain.setTargetAtTime(
-            Number(value) / 100 * 0.45,
-            audioCtx.currentTime,
-            0.1
+        master.gain.setTargetAtTime(
+            v/100*.45,
+            ctx.currentTime,
+            .1
         );
 
     }
@@ -818,31 +1250,26 @@ $('soundVolume').oninput = ()=>{
 };
 
 
-// 试听音乐
-
-$('previewSound').onclick = ()=>{
-
-    playGentleMusic(true);
-
-};
-
-
-// 首次操作时解锁声音
+// 解锁浏览器声音权限
 
 document.addEventListener(
+
     'pointerdown',
-    ()=>unlockAudio(),
+
+    () => unlock(),
+
     {once:true}
+
 );
 
 
 // ========================================
-// 5. 时间计算
+// 8. 时间计算
 // ========================================
 
-const duration = x => x[x.mode] * 60;
+const duration = x => x[x.mode]*60;
 
-const elapsed = (x,now = Date.now()) =>
+const elapsed = (x,n=Date.now()) =>
 
     Math.min(
 
@@ -851,225 +1278,65 @@ const elapsed = (x,now = Date.now()) =>
         x.elapsed + (
 
             x.since == null
-                ? 0
-                : Math.max(
-                    0,
-                    (now-x.since)/1000
-                )
+
+            ? 0
+
+            : Math.max(
+                0,
+                (n-x.since)/1000
+            )
 
         )
 
     );
 
 
-// 时间格式化
-
-function fmt(s){
-
-    s = Math.max(0,Math.floor(s));
-
-    return Math.floor(s/3600) +
-        '小时 ' +
-        Math.floor(s%3600/60) +
-        '分 ' +
-        s%60 +
-        '秒';
-
-}
-
-
-// 倒计时格式化
-
-function formatClock(seconds){
-
-    seconds = Math.max(
-        0,
-        Math.ceil(seconds)
-    );
-
-    return String(
-        Math.floor(seconds/60)
-    ).padStart(2,'0') +
-
-    ':' +
-
-    String(
-        seconds%60
-    ).padStart(2,'0');
-
-}
-
-
 // ========================================
-// 6. 浏览器分页标签倒计时
+// 9. 阅读记录结算
 // ========================================
 
-function updateTabTitle(remaining,used){
-
-    const time = formatClock(remaining);
-
-    if(!ready){
-
-        document.title = ORIGINAL_TITLE;
-
-        return;
-
-    }
-
-    if(
-        d.since !== null &&
-        remaining > 0
-    ){
-
-        document.title = d.mode === 'focus'
-            ? `${time} - 论文阅读中`
-            : `${time} - 休息中`;
-
-    }else if(Date.now() < completedUntil){
-
-        document.title =
-            completedMode === 'focus'
-            ? '阅读完成 - 100小时挑战'
-            : '休息结束 - 100小时挑战';
-
-    }else if(
-        d.since === null &&
-        used > 0
-    ){
-
-        document.title =
-            `${time} - 已暂停`;
-
-    }else if(
-        d.since !== null &&
-        remaining === 0
-    ){
-
-        document.title =
-            d.mode === 'focus'
-            ? '阅读完成 - 100小时挑战'
-            : '休息结束 - 100小时挑战';
-
-    }else{
-
-        document.title = ORIGINAL_TITLE;
-
-    }
-
-}
-
-
-// ========================================
-// 7. 计时结束提醒
-// ========================================
-
-function triggerAlarm(timer){
-
-    if(!timer) return;
-
-    if(lastAlarmKey === timer.key){
-        return;
-    }
-
-    lastAlarmKey = timer.key;
-
-    completedMode = timer.mode;
-
-    completedUntil =
-        Date.now() + 60000;
-
-    document.title =
-        timer.mode === 'focus'
-        ? '阅读完成 - 100小时挑战'
-        : '休息结束 - 100小时挑战';
-
-    playGentleMusic();
-
-}
-
-
-function checkTimerAlarm(){
-
-    if(!ready) return;
-
-    const now = Date.now();
-
-    if(d.since !== null){
-
-        watchedTimer = {
-
-            key:
-                `${d.mode}-${d.since}`,
-
-            mode:d.mode,
-
-            end:
-                d.since +
-                (duration(d)-d.elapsed)*1000
-
-        };
-
-        if(now >= watchedTimer.end){
-
-            triggerAlarm(watchedTimer);
-
-        }
-
-    }else if(watchedTimer){
-
-        // 处理其他装置先完成云端保存的情况
-
-        if(
-            now >= watchedTimer.end &&
-            now-watchedTimer.end < 60000 &&
-            d.elapsed === 0
-        ){
-
-            triggerAlarm(watchedTimer);
-
-        }
-
-        watchedTimer = null;
-
-    }
-
-}
-
-
-// ========================================
-// 8. 阅读记录结算
-// ========================================
-
-function settle(x,now,force = false){
+function settle(x,n,force=false){
 
     let e = Math.floor(
-        elapsed(x,now)
+        elapsed(x,n)
     );
 
     if(
+
         !force &&
+
         !(
+
             x.since !== null &&
+
             e >= duration(x)
+
         )
+
     ){
 
         return false;
 
     }
 
-    if(x.mode === 'focus' && e > 0){
+    if(x.mode === 'focus' && e>0){
 
         x.logs.push({
 
             id:crypto.randomUUID(),
 
             date:x.since === null
-                ? now
+
+                ? n
+
                 : Math.min(
-                    now,
+
+                    n,
+
                     x.since +
+
                     (duration(x)-x.elapsed)*1000
+
                 ),
 
             seconds:e,
@@ -1083,6 +1350,7 @@ function settle(x,now,force = false){
     }
 
     x.elapsed = 0;
+
     x.since = null;
 
     return true;
@@ -1091,16 +1359,21 @@ function settle(x,now,force = false){
 
 
 // ========================================
-// 9. Firebase 云端事务
+// 10. Firebase 云端事务
 // ========================================
 
 async function change(fn){
 
     if(
+
         !ready ||
+
         busy ||
+
         !ref ||
+
         !navigator.onLine
+
     ){
 
         return false;
@@ -1114,25 +1387,29 @@ async function change(fn){
         const target = ref;
 
         await runTransaction(
+
             db,
-            async t=>{
 
-                const snap =
-                    await t.get(target);
+            async t => {
 
-                let x = snap.exists()
-                    ? snap.data()
+                const s = await t.get(target);
+
+                let x = s.exists()
+
+                    ? s.data()
+
                     : fresh();
 
-                let now = Date.now();
+                let n = Date.now();
 
-                settle(x,now);
+                settle(x,n);
 
-                fn(x,now);
+                fn(x,n);
 
                 t.set(target,x);
 
             }
+
         );
 
         return true;
@@ -1140,7 +1417,7 @@ async function change(fn){
     }catch(e){
 
         alert(
-            '同步失败：' + e.message
+            '同步失败：'+e.message
         );
 
         return false;
@@ -1157,7 +1434,530 @@ async function change(fn){
 
 
 // ========================================
-// 10. 阅读历史记录
+// 11. 时间格式化
+// ========================================
+
+function fmt(s){
+
+    s = Math.max(
+        0,
+        Math.floor(s)
+    );
+
+    return Math.floor(s/3600)
+
+        +'小时 '
+
+        +Math.floor(s%3600/60)
+
+        +'分 '
+
+        +s%60
+
+        +'秒';
+
+}
+
+
+function clock(s){
+
+    s = Math.max(
+        0,
+        Math.ceil(s)
+    );
+
+    return String(
+
+        Math.floor(s/60)
+
+    ).padStart(2,'0')
+
+    +':'+
+
+    String(
+
+        s%60
+
+    ).padStart(2,'0');
+
+}
+
+
+// ========================================
+// 12. 计时结束提醒
+// ========================================
+
+function alarm(t){
+
+    if(alarmKey === t.key){
+
+        return;
+
+    }
+
+    alarmKey = t.key;
+
+    completedMode = t.mode;
+
+    completedUntil = Date.now()+60000;
+
+    music();
+
+}
+
+
+// ========================================
+// 13. 核心计时系统
+// ========================================
+
+function tick(){
+
+    let e = elapsed(d);
+
+    let r = Math.ceil(
+        duration(d)-e
+    );
+
+    let live = d.mode === 'focus'
+
+        ? Math.floor(e)
+
+        : 0;
+
+    let saved = d.logs.reduce(
+        (a,l)=>a+l.seconds,
+        0
+    );
+
+    let total = saved+live;
+
+    let n = Date.now();
+
+
+    // 检查倒计时是否结束
+
+    if(ready){
+
+        if(d.since !== null){
+
+            watched = {
+
+                key:d.mode+'-'+d.since,
+
+                mode:d.mode,
+
+                end:d.since+
+
+                    (duration(d)-d.elapsed)*1000
+
+            };
+
+            if(n >= watched.end){
+
+                alarm(watched);
+
+            }
+
+        }else if(watched){
+
+            if(
+
+                n >= watched.end &&
+
+                n-watched.end < 60000 &&
+
+                d.elapsed === 0
+
+            ){
+
+                alarm(watched);
+
+            }
+
+            watched = null;
+
+        }
+
+    }
+
+
+    // 根据学习状态自动切换鼓励语
+
+    let state = !ready
+
+        ? 'daily'
+
+        : d.since !== null && r>0
+
+        ? d.mode
+
+        : n<completedUntil
+
+        ? (
+            completedMode === 'focus'
+            ? 'done'
+            : 'rest'
+        )
+
+        : e>0
+
+        ? 'pause'
+
+        : 'daily';
+
+
+    if(state !== lastState){
+
+        lastState = state;
+
+        encourage(state);
+
+    }
+
+
+    // 更新环形倒计时
+
+    $('clock').textContent = clock(r);
+
+    $('dial').style.setProperty(
+
+        '--progress',
+
+        360*e/duration(d)+'deg'
+
+    );
+
+    $('modeLabel').textContent =
+
+        d.mode === 'focus'
+
+        ? '专注阅读'
+
+        : '放松休息';
+
+
+    // 更新100小时进度
+
+    $('left').textContent =
+
+        fmt(GOAL-total);
+
+    $('total').textContent =
+
+        fmt(total);
+
+    $('percent').textContent =
+
+        (total/GOAL*100).toFixed(2)+'%';
+
+    $('bar').style.width =
+
+        Math.min(
+
+            100,
+
+            total/GOAL*100
+
+        )+'%';
+
+
+    // 成长里程碑
+
+    let marks = [
+
+        1,5,10,25,50,75,100
+
+    ];
+
+    let level = marks.filter(
+
+        h => saved >= h*3600
+
+    ).length;
+
+
+    if(
+
+        ready &&
+
+        lastMilestone !== null &&
+
+        level > lastMilestone
+
+    ){
+
+        encourage('milestone');
+
+    }
+
+    if(ready){
+
+        lastMilestone = level;
+
+    }
+
+
+    $('milestones').replaceChildren(
+
+        ...marks.map(h => {
+
+            let s = document.createElement('span');
+
+            s.className =
+
+                saved >= h*3600
+
+                ? 'earned'
+
+                : '';
+
+            s.textContent =
+
+                (
+
+                    saved >= h*3600
+
+                    ? '✓ '
+
+                    : '○ '
+
+                ) + h + ' 小时';
+
+            return s;
+
+        })
+
+    );
+
+
+    // 今日、本周、本月统计
+
+    let day = new Date();
+
+    day.setHours(0,0,0,0);
+
+    let week = new Date(day);
+
+    week.setDate(
+
+        week.getDate() -
+
+        (week.getDay()+6)%7
+
+    );
+
+    let month = new Date(day);
+
+    month.setDate(1);
+
+
+    for(
+
+        const [k,t,label] of [
+
+            ['today',day,'今日'],
+
+            ['week',week,'本周'],
+
+            ['month',month,'本月']
+
+        ]
+
+    ){
+
+        $(k).textContent =
+
+            label+' '+
+
+            fmt(
+
+                d.logs.filter(
+
+                    l => l.date >= +t
+
+                ).reduce(
+
+                    (a,l)=>a+l.seconds,
+
+                    0
+
+                )+live
+
+            );
+
+    }
+
+
+    // 按钮控制
+
+    let lock =
+
+        !ready ||
+
+        busy ||
+
+        !navigator.onLine;
+
+
+    for(
+
+        const k of [
+
+            'focus',
+
+            'rest',
+
+            'saveNotes',
+
+            'import'
+
+        ]
+
+    ){
+
+        $(k).disabled = lock;
+
+    }
+
+
+    $('start').disabled =
+
+        lock || d.since !== null;
+
+    $('pause').disabled =
+
+        lock || d.since === null;
+
+    $('finish').disabled =
+
+        lock || e<=0;
+
+    $('focusMin').disabled =
+
+    $('restMin').disabled =
+
+        lock || e>0 || d.since !== null;
+
+
+    $('start').textContent =
+
+        e>0 ? '继续' : '开始';
+
+
+    $('focus').className =
+
+        d.mode === 'focus'
+
+        ? 'primary'
+
+        : '';
+
+
+    $('rest').className =
+
+        d.mode === 'rest'
+
+        ? 'primary'
+
+        : '';
+
+
+    // 计时状态
+
+    let done = n<completedUntil;
+
+    let running =
+
+        d.since !== null && r>0;
+
+    let status = running
+
+        ? '计时中'
+
+        : done
+
+        ? (
+
+            completedMode === 'focus'
+
+            ? '阅读完成！'
+
+            : '休息结束！'
+
+        )
+
+        : e>0
+
+        ? '已暂停'
+
+        : '准备开始';
+
+
+    $('status').textContent =
+
+        !ready
+
+        ? '等待云端连接'
+
+        : !navigator.onLine
+
+        ? '离线 · 只读'
+
+        : status;
+
+
+    // 浏览器分页标签倒计时
+
+    document.title =
+
+        !ready
+
+        ? TITLE
+
+        : running
+
+        ? clock(r)+' - '+(
+
+            d.mode === 'focus'
+
+            ? '论文阅读中'
+
+            : '休息中'
+
+        )
+
+        : done
+
+        ? status+' - 100小时挑战'
+
+        : e>0
+
+        ? clock(r)+' - 已暂停'
+
+        : TITLE;
+
+
+    // 自动保存完成的阅读记录
+
+    if(
+
+        !lock &&
+
+        d.since !== null &&
+
+        e >= duration(d)
+
+    ){
+
+        change(()=>{});
+
+    }
+
+}
+
+
+// ========================================
+// 14. 阅读历史记录
 // ========================================
 
 function history(){
@@ -1173,31 +1973,32 @@ function history(){
     }
 
     for(
+
         const l of [...d.logs].reverse()
+
     ){
 
-        let e =
-            document.createElement('div');
+        let e = document.createElement('div');
 
         e.className = 'entry';
 
         for(
+
             const v of [
 
                 l.paper || '未命名论文',
 
-                new Date(l.date)
-                    .toLocaleString() +
-                    ' · ' +
-                    fmt(l.seconds),
+                new Date(l.date).toLocaleString()
+
+                    +' · '+fmt(l.seconds),
 
                 l.notes || ''
 
             ]
+
         ){
 
-            let p =
-                document.createElement('p');
+            let p = document.createElement('p');
 
             p.textContent = v;
 
@@ -1205,19 +2006,21 @@ function history(){
 
         }
 
-        let b =
-            document.createElement('button');
+
+        let b = document.createElement('button');
 
         b.textContent = '删除';
 
-        b.onclick = ()=>{
+        b.onclick = () => {
 
             if(confirm('删除此记录？')){
 
-                change(x=>{
+                change(x => {
 
                     x.logs = x.logs.filter(
-                        a=>a.id !== l.id
+
+                        a => a.id !== l.id
+
                     );
 
                 });
@@ -1236,220 +2039,7 @@ function history(){
 
 
 // ========================================
-// 11. 核心计时与界面更新
-// ========================================
-
-function tick(){
-
-    let e = elapsed(d);
-
-    let r = Math.ceil(
-        duration(d)-e
-    );
-
-    let live =
-        d.mode === 'focus'
-        ? Math.floor(e)
-        : 0;
-
-    let total =
-        d.logs.reduce(
-            (a,l)=>a+l.seconds,
-            0
-        ) + live;
-
-
-    // 检查计时结束
-
-    checkTimerAlarm();
-
-
-    // 更新网页倒计时
-
-    $('clock').textContent =
-        formatClock(r);
-
-
-    // 更新浏览器分页标签
-
-    updateTabTitle(r,e);
-
-
-    // 更新100小时目标
-
-    $('left').textContent =
-        fmt(GOAL-total);
-
-    $('total').textContent =
-        fmt(total);
-
-    $('percent').textContent =
-        (total/GOAL*100).toFixed(2)+'%';
-
-    $('bar').style.width =
-        Math.min(
-            100,
-            total/GOAL*100
-        )+'%';
-
-
-    // 今日、本周、本月统计
-
-    let day = new Date();
-
-    day.setHours(0,0,0,0);
-
-    let week = new Date(day);
-
-    week.setDate(
-        week.getDate() -
-        (week.getDay()+6)%7
-    );
-
-    let month = new Date(day);
-
-    month.setDate(1);
-
-    for(
-        const [k,t,label] of [
-
-            ['today',day,'今日'],
-            ['week',week,'本周'],
-            ['month',month,'本月']
-
-        ]
-    ){
-
-        $(k).textContent =
-
-            label + ' ' +
-
-            fmt(
-
-                d.logs.filter(
-                    l=>l.date >= +t
-                ).reduce(
-                    (a,l)=>a+l.seconds,
-                    0
-                ) + live
-
-            );
-
-    }
-
-
-    // 按钮控制
-
-    let lock =
-        !ready ||
-        busy ||
-        !navigator.onLine;
-
-    for(
-        const k of [
-            'focus',
-            'rest',
-            'saveNotes',
-            'import'
-        ]
-    ){
-
-        $(k).disabled = lock;
-
-    }
-
-    $('start').disabled =
-        lock ||
-        d.since !== null;
-
-    $('pause').disabled =
-        lock ||
-        d.since === null;
-
-    $('finish').disabled =
-        lock ||
-        e <= 0;
-
-    $('focusMin').disabled =
-    $('restMin').disabled =
-
-        lock ||
-        e > 0 ||
-        d.since !== null;
-
-    $('start').textContent =
-        e > 0 ? '继续' : '开始';
-
-    $('focus').className =
-        d.mode === 'focus'
-        ? 'primary'
-        : '';
-
-    $('rest').className =
-        d.mode === 'rest'
-        ? 'primary'
-        : '';
-
-
-    // 计时状态
-
-    if(!ready){
-
-        $('status').textContent =
-            '等待云端连接';
-
-    }else if(!navigator.onLine){
-
-        $('status').textContent =
-            '离线 · 只读';
-
-    }else if(
-        d.since !== null &&
-        r > 0
-    ){
-
-        $('status').textContent =
-            '计时中';
-
-    }else if(
-        Date.now() < completedUntil
-    ){
-
-        $('status').textContent =
-            completedMode === 'focus'
-            ? '✓ 阅读完成，辛苦了！'
-            : '✓ 休息结束，准备继续阅读！';
-
-    }else if(e > 0){
-
-        $('status').textContent =
-            '已暂停';
-
-    }else{
-
-        $('status').textContent =
-            '准备开始';
-
-    }
-
-
-    // 计时结束后自动保存
-
-    if(
-        !lock &&
-        d.since !== null &&
-        e >= duration(d)
-    ){
-
-        change(()=>{});
-
-    }
-
-}
-
-
-// ========================================
-// 12. 页面渲染
+// 15. 页面渲染
 // ========================================
 
 function render(){
@@ -1474,24 +2064,12 @@ function render(){
 
 
 // ========================================
-// 13. Firebase 初始化及 Google 登入
+// 16. Firebase 登入及同步
 // ========================================
 
 try{
 
-    if(
-        firebaseConfig.apiKey ===
-        'YOUR_API_KEY'
-    ){
-
-        throw Error(
-            '请先填写 Firebase 配置'
-        );
-
-    }
-
-    let app =
-        initializeApp(firebaseConfig);
+    let app = initializeApp(firebaseConfig);
 
     auth = getAuth(app);
 
@@ -1500,15 +2078,20 @@ try{
 
     // Google 登入
 
-    $('login').onclick = ()=>{
+    $('login').onclick = () => {
 
-        unlockAudio();
+        unlock();
 
         signInWithPopup(
+
             auth,
+
             new GoogleAuthProvider()
+
         ).catch(
-            e=>alert(e.message)
+
+            e => alert(e.message)
+
         );
 
     };
@@ -1516,18 +2099,12 @@ try{
 
     // 登出
 
-    $('logout').onclick = ()=>{
-
-        signOut(auth).catch(
-            e=>alert(e.message)
-        );
-
-    };
+    $('logout').onclick = () => signOut(auth);
 
 
     // 监听登入状态
 
-    onAuthStateChanged(auth,u=>{
+    onAuthStateChanged(auth,u => {
 
         unsub?.();
 
@@ -1537,40 +2114,52 @@ try{
 
         ref = null;
 
-        watchedTimer = null;
+        d = fresh();
 
-        lastAlarmKey = null;
+        watched = null;
+
+        alarmKey = '';
 
         completedUntil = 0;
 
-        stopMusic();
+        lastMilestone = null;
 
-        d = fresh();
+        stop();
 
         render();
 
-        $('cloud').textContent =
-            u
-            ? '连接中：'+u.email
-            : '尚未登入';
 
         $('login').disabled = !!u;
 
         $('logout').disabled = !u;
 
+
+        $('cloud').textContent =
+
+            u
+
+            ? '连接中：'+u.email
+
+            : '尚未登入';
+
+
         if(!u) return;
 
 
-        // 连接原本的 Firebase 数据
+        // 连接原本的数据库
 
         ref = doc(
+
             db,
+
             'users',
+
             u.uid
+
         );
 
 
-        // 实时监听云端数据
+        // 实时同步云端数据
 
         unsub = onSnapshot(
 
@@ -1578,28 +2167,31 @@ try{
 
             {includeMetadataChanges:true},
 
-            s=>{
+            s => {
 
                 d = s.exists()
+
                     ? s.data()
+
                     : fresh();
 
-                ready =
-                    !s.metadata.fromCache;
+                ready = !s.metadata.fromCache;
 
                 $('cloud').textContent =
+
                     ready
+
                     ? '云端已连接：'+u.email
+
                     : '等待服务器连接';
 
                 render();
 
             },
 
-            e=>{
+            e => {
 
-                $('cloud').textContent =
-                    e.message;
+                $('cloud').textContent = e.message;
 
                 ready = false;
 
@@ -1613,8 +2205,7 @@ try{
 
 }catch(e){
 
-    $('cloud').textContent =
-        e.message;
+    $('cloud').textContent = e.message;
 
     $('login').disabled = true;
 
@@ -1622,20 +2213,19 @@ try{
 
 
 // ========================================
-// 14. 阅读笔记保存
+// 17. 阅读心得储存
 // ========================================
 
 for(
+
     const k of ['paper','notes']
+
 ){
 
-    $(k).oninput = ()=>{
-
-        dirty = true;
-
-    };
+    $(k).oninput = () => dirty = true;
 
 }
+
 
 function draft(x){
 
@@ -1649,22 +2239,28 @@ function draft(x){
 
 }
 
-$('saveNotes').onclick = async()=>{
 
-    const paper = $('paper').value;
-    const notes = $('notes').value;
+$('saveNotes').onclick = async () => {
 
-    const success = await change(x=>{
+    let p = $('paper').value;
 
-        x.paper = paper;
-        x.notes = notes;
+    let n = $('notes').value;
 
-    });
 
     if(
-        success &&
-        $('paper').value === paper &&
-        $('notes').value === notes
+
+        await change(x => {
+
+            x.paper = p;
+
+            x.notes = n;
+
+        })
+
+        && $('paper').value === p
+
+        && $('notes').value === n
+
     ){
 
         dirty = false;
@@ -1675,18 +2271,18 @@ $('saveNotes').onclick = async()=>{
 
 
 // ========================================
-// 15. 开始、暂停、结束
+// 18. 开始、暂停、结束
 // ========================================
 
-// 开始／继续
+// 开始阅读
 
-$('start').onclick = async()=>{
+$('start').onclick = () => {
+
+    unlock();
 
     completedUntil = 0;
 
-    unlockAudio();
-
-    await change((x,n)=>{
+    change((x,n) => {
 
         draft(x);
 
@@ -1701,11 +2297,11 @@ $('start').onclick = async()=>{
 };
 
 
-// 暂停
+// 暂停阅读
 
-$('pause').onclick = ()=>{
+$('pause').onclick = () =>
 
-    change((x,n)=>{
+    change((x,n) => {
 
         draft(x);
 
@@ -1715,41 +2311,56 @@ $('pause').onclick = ()=>{
 
     });
 
-};
-
 
 // 结束并保存
 
-$('finish').onclick = ()=>{
+$('finish').onclick = async () => {
 
-    change((x,n)=>{
+    if(
 
-        draft(x);
+        await change((x,n) => {
 
-        settle(x,n,true);
+            draft(x);
 
-    });
+            settle(x,n,true);
+
+        })
+
+    ){
+
+        completedMode = d.mode;
+
+        completedUntil = Date.now()+60000;
+
+        tick();
+
+    }
 
 };
 
 
 // ========================================
-// 16. 阅读／休息模式切换
+// 19. 阅读与休息模式
 // ========================================
 
 for(
+
     const k of ['focus','rest']
+
 ){
 
-    $(k).onclick = ()=>{
+    $(k).onclick = () => {
 
         completedUntil = 0;
 
-        change((x,n)=>{
+        change((x,n) => {
 
             if(
+
                 x.mode !== k &&
+
                 elapsed(x,n) === 0
+
             ){
 
                 x.mode = k;
@@ -1761,9 +2372,9 @@ for(
     };
 
 
-    // 修改阅读或休息时间
+    // 修改计时时间
 
-    $(k+'Min').onchange = ()=>{
+    $(k+'Min').onchange = () => {
 
         let v = Math.max(
 
@@ -1774,18 +2385,24 @@ for(
                 +$(k+'Min').max,
 
                 Math.round(
+
                     +$(k+'Min').value || 1
+
                 )
 
             )
 
         );
 
-        change(x=>{
+
+        change(x => {
 
             if(
+
                 elapsed(x) === 0 &&
+
                 x.since === null
+
             ){
 
                 x[k] = v;
@@ -1800,23 +2417,20 @@ for(
 
 
 // ========================================
-// 17. 导出备份
+// 20. 导出阅读备份
 // ========================================
 
-$('export').onclick = ()=>{
+$('export').onclick = () => {
 
-    let a =
-        document.createElement('a');
+    let a = document.createElement('a');
 
-    const url = URL.createObjectURL(
+    let url = URL.createObjectURL(
 
         new Blob(
 
             [JSON.stringify(d)],
 
-            {
-                type:'application/json'
-            }
+            {type:'application/json'}
 
         )
 
@@ -1824,35 +2438,38 @@ $('export').onclick = ()=>{
 
     a.href = url;
 
-    a.download =
-        'reading-backup.json';
+    a.download = 'reading-backup.json';
 
     a.click();
 
     setTimeout(
-        ()=>URL.revokeObjectURL(url),
+
+        () => URL.revokeObjectURL(url),
+
         1000
+
     );
 
 };
 
 
 // ========================================
-// 18. 导入备份
+// 21. 导入阅读备份
 // ========================================
 
-$('import').onclick = ()=>{
+$('import').onclick = () =>
 
     $('file').click();
 
-};
 
-$('file').onchange = async()=>{
+$('file').onchange = async () => {
 
     try{
 
         if(!$('file').files.length){
+
             return;
+
         }
 
         let x = JSON.parse(
@@ -1861,21 +2478,22 @@ $('file').onchange = async()=>{
 
         );
 
+
         if(
 
-            !Array.isArray(x.logs) ||
+            !Array.isArray(x.logs)
 
-            !x.logs.every(
+            ||
 
-                l=>
+            !x.logs.every(l =>
 
-                    typeof l.id === 'string' &&
+                typeof l.id === 'string'
 
-                    Number.isFinite(l.seconds) &&
+                && Number.isFinite(l.seconds)
 
-                    l.seconds >= 0 &&
+                && l.seconds >= 0
 
-                    Number.isFinite(l.date)
+                && Number.isFinite(l.date)
 
             )
 
@@ -1885,15 +2503,14 @@ $('file').onchange = async()=>{
 
         }
 
+
         if(confirm('合并备份记录？')){
 
-            await change(y=>{
+            await change(y => {
 
                 let ids = new Set(
 
-                    y.logs.map(
-                        l=>l.id
-                    )
+                    y.logs.map(l => l.id)
 
                 );
 
@@ -1927,76 +2544,48 @@ $('file').onchange = async()=>{
 
 
 // ========================================
-// 19. 后台与网络状态监听
+// 22. 后台分页及网络监听
 // ========================================
 
-// 切换回网页时立即更新时间
+for(
+
+    const event of [
+
+        'focus',
+
+        'online',
+
+        'offline'
+
+    ]
+
+){
+
+    window.addEventListener(
+
+        event,
+
+        tick
+
+    );
+
+}
+
 
 document.addEventListener(
 
     'visibilitychange',
 
-    ()=>{
-
-        tick();
-
-    }
-
-);
-
-
-// 浏览器重新取得焦点
-
-window.addEventListener(
-
-    'focus',
-
-    ()=>{
-
-        tick();
-
-    }
-
-);
-
-
-// 网络重新连接
-
-window.addEventListener(
-
-    'online',
-
-    ()=>{
-
-        tick();
-
-    }
-
-);
-
-
-// 网络断开
-
-window.addEventListener(
-
-    'offline',
-
-    ()=>{
-
-        tick();
-
-    }
+    tick
 
 );
 
 
 // ========================================
-// 20. 启动系统
+// 23. 启动系统
 // ========================================
 
 render();
-
-// 每500毫秒更新时间及分页标签
 
 setInterval(tick,500);
 

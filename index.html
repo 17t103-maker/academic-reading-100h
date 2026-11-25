@@ -328,6 +328,27 @@ footer {
         gap: 2px;
     }
 }
+/* 日历阅读时间强化 */
+.cal-day { min-height: 122px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 4px; }
+.cal-day b { font-size: 14px; color: #647d73; font-weight: 600; }
+.cal-day .cal-reading { font-size: clamp(20px, 3vw, 28px); font-weight: 800; line-height: 1.15; color: #23735c; font-variant-numeric: tabular-nums; }
+.cal-day .cal-reading.empty { color: #a3b0a6; }
+.cal-day.pending .cal-reading:not(.empty) { color: #946419; }
+.cal-day.met .cal-reading { color: #176044; }
+.cal-day .cal-unit { font-size: 11px; font-weight: 500; }
+.cal-day .cal-target { color: #647d73; margin-top: 0; font-weight: 500; }
+.cal-day .cal-progress { width: 100%; margin-top: 3px; flex-shrink: 0; }
+.cal-day.pending .cal-progress i { background: #bd9142; }
+.cal-day .cal-result { margin-top: 0; color: #946419; }
+.cal-day.met .cal-result { color: #176044; }
+.cal-day.today { border: 2px solid #23735c; }
+@media (max-width: 520px) {
+    .cal-day { min-height: 96px; gap: 3px; padding: 4px; }
+    .cal-day .cal-reading { font-size: clamp(14px, 4vw, 22px); }
+    .cal-day .cal-unit { font-size: 9px; }
+    .cal-day b { font-size: 12px; }
+    .cal-day .cal-target, .cal-day .cal-result { font-size: 9px; }
+}
 </style>
     </head>
     <body>
@@ -360,6 +381,43 @@ footer {
                 <h2 style="margin-top:24px">成长里程碑</h2>
                 <div id="milestones" class="milestones">
                 </div>
+            </section>
+            <section class="timer">
+                <div class="row">
+                    <button id="focus">论文阅读</button>
+                    <button id="rest">休息模式</button>
+                </div>
+                <div class="dial" id="dial">
+                    <div class="dial-inner"><small id="modeLabel">专注阅读</small>
+                        <div class="clock" id="clock">25:00</div>
+                        <div id="status" class="muted" aria-live="polite">准备开始</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <button class="primary" id="start">开始</button>
+                    <button id="pause">暂停</button>
+                    <button id="finish">结束并保存</button>
+                </div>
+                <div class="quote"><small>给正在成长的自己</small>
+                    <p id="quote" aria-live="polite">
+                    </p>
+                    <div class="row"><small id="quoteKind">每日鼓励</small>
+                        <button id="nextQuote">换一句</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <label>阅读（分钟） <input id="focusMin" type="number" min="1" max="600" value="25">
+                    </label>
+                    <label>休息（分钟） <input id="restMin" type="number" min="1" max="120" value="5">
+                    </label>
+                </div>
+                <div class="row sound">
+                    <label>
+                        <input type="checkbox" id="soundEnabled" checked> 温和音乐提醒</label>
+                    <label>音量 <input type="range" id="soundVolume" min="0" max="100" value="35"> <span id="volumeText"></span>
+                    </label>
+                    <button id="previewSound">♫ 试听音乐</button>
+                </div><small id="soundMessage">倒计时结束后播放柔和旋律。</small>
             </section>
             <section id="calendar">
                 <h2>学术阅读规划日历</h2>
@@ -404,43 +462,6 @@ footer {
                     </p>
                     <button id="planApply" class="primary">生成阅读计划</button><small> 已有目标的日期会保留，不覆盖。</small>
                 </div>
-            </section>
-            <section class="timer">
-                <div class="row">
-                    <button id="focus">论文阅读</button>
-                    <button id="rest">休息模式</button>
-                </div>
-                <div class="dial" id="dial">
-                    <div class="dial-inner"><small id="modeLabel">专注阅读</small>
-                        <div class="clock" id="clock">25:00</div>
-                        <div id="status" class="muted" aria-live="polite">准备开始</div>
-                    </div>
-                </div>
-                <div class="row">
-                    <button class="primary" id="start">开始</button>
-                    <button id="pause">暂停</button>
-                    <button id="finish">结束并保存</button>
-                </div>
-                <div class="quote"><small>给正在成长的自己</small>
-                    <p id="quote" aria-live="polite">
-                    </p>
-                    <div class="row"><small id="quoteKind">每日鼓励</small>
-                        <button id="nextQuote">换一句</button>
-                    </div>
-                </div>
-                <div class="row">
-                    <label>阅读（分钟） <input id="focusMin" type="number" min="1" max="600" value="25">
-                    </label>
-                    <label>休息（分钟） <input id="restMin" type="number" min="1" max="120" value="5">
-                    </label>
-                </div>
-                <div class="row sound">
-                    <label>
-                        <input type="checkbox" id="soundEnabled" checked> 温和音乐提醒</label>
-                    <label>音量 <input type="range" id="soundVolume" min="0" max="100" value="35"> <span id="volumeText"></span>
-                    </label>
-                    <button id="previewSound">♫ 试听音乐</button>
-                </div><small id="soundMessage">倒计时结束后播放柔和旋律。</small>
             </section>
             <section>
                 <h2>本次阅读内容</h2>
@@ -606,7 +627,7 @@ function actualDays() { const a = {}; for (const l of d.logs) {
 function loadDay() { const p = plans()[selected]; $('calSelected').textContent = selected + ' 阅读目标'; $('calGoal').value = p?.minutes ?? 60; $('calTopic').value = p?.topic ?? ''; }
 function selectDay(k) { selected = k; loadDay(); calSignature = ''; renderCalendar(); }
 function renderCalendar() { const a = actualDays(), p = plans(), today = dateKey(Date.now()), month = dateKey(view).slice(0, 7); const lock = !ready || busy || !navigator.onLine; for (const k of ['calSave', 'calDelete', 'planApply'])
-    $(k).disabled = lock; const sig = JSON.stringify([month, selected, today, p, Object.entries(a).map(([k, v]) => [k, Math.floor(v / 60)])]); if (sig === calSignature)
+    $(k).disabled = lock; const sig = JSON.stringify([month, selected, today, p, Object.entries(a).map(([k, v]) => [k, Math.floor(v)])]); if (sig === calSignature)
     return; calSignature = sig; $('calMonth').textContent = view.getFullYear() + '年 ' + (view.getMonth() + 1) + '月'; const grid = $('calGrid'); grid.replaceChildren(); for (const w of ['一', '二', '三', '四', '五', '六', '日']) {
     const x = document.createElement('div');
     x.className = 'cal-week';
@@ -627,8 +648,19 @@ function renderCalendar() { const a = actualDays(), p = plans(), today = dateKey
     const num = document.createElement('b');
     num.textContent = i;
     b.append(num);
+    const reading = document.createElement('span');
+    reading.className = 'cal-reading' + (v ? '' : ' empty');
+    reading.textContent = v ? (v < 60 ? '<1' : String(Math.floor(v / 60))) : '—';
+    if (v) {
+        const unit = document.createElement('span');
+        unit.className = 'cal-unit';
+        unit.textContent = ' 分';
+        reading.append(unit);
+    }
+    b.append(reading);
     const txt = document.createElement('small');
-    txt.textContent = g ? `${Math.floor(v / 60)}/${g}分` : v ? `${Math.floor(v / 60)}分` : '＋ 目标';
+    txt.className = 'cal-target';
+    txt.textContent = g ? `目标 ${g}分` : '＋ 设置目标';
     b.append(txt);
     if (g) {
         const bar = document.createElement('div');
@@ -637,6 +669,10 @@ function renderCalendar() { const a = actualDays(), p = plans(), today = dateKey
         fill.style.width = Math.min(100, v / (g * 60) * 100) + '%';
         bar.append(fill);
         b.append(bar);
+        const result = document.createElement('small');
+        result.className = 'cal-result';
+        result.textContent = v >= g * 60 ? '✓ 已达标' : `${Math.floor(v / (g * 60) * 100)}%`;
+        b.append(result);
     }
     b.title = p[k]?.topic || k;
     b.onclick = () => selectDay(k);

@@ -1,24 +1,2006 @@
-<!doctype html><html lang="zh-Hans"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>100小时论文阅读挑战</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f3f6f8;color:#17333c;font:16px system-ui,sans-serif}main{max-width:900px;margin:auto;padding:24px 16px}h1{font-size:28px;margin:8px 0}h2{font-size:19px}small,.muted{color:#60777d}section{background:white;border:1px solid #dce6e8;border-radius:20px;padding:22px;margin:16px 0}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stat{background:#edf5f3;padding:14px;border-radius:12px}.stat strong{display:block;font-size:24px;margin-top:8px}.track{height:12px;background:#e1eae9;border-radius:20px;overflow:hidden;margin:16px 0}.bar{height:100%;background:#168477;width:0;transition:width .3s}.timer{text-align:center}.clock{font-size:clamp(64px,15vw,112px);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-4px;margin:20px 0}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}button,input,textarea{font:inherit;border-radius:10px;padding:12px;border:1px solid #cbdad9}button{cursor:pointer;background:#eaf3f1;color:#17554e;font-weight:600}button.primary{background:#14796e;color:white;border-color:#14796e}button:disabled{opacity:.4;cursor:default}input[type=number]{width:95px}input[type=text],textarea{width:100%;margin:6px 0 12px}textarea{resize:vertical}label{font-size:14px}.timer .row{justify-content:center}.entry{border-top:1px solid #e1eae9;padding:14px 0;overflow-wrap:anywhere}.entry p{white-space:pre-wrap;margin:6px 0}.entry button{padding:5px 10px}footer{font-size:13px;color:#60777d;line-height:1.7}@media(max-width:520px){.stats{grid-template-columns:1fr 1fr}.stat:first-child{grid-column:span 2}.stat strong{font-size:22px}section{padding:16px}button{min-height:44px}}
-</style><main><small>ACADEMIC READING TRACKER · 100H CHALLENGE</small><h1>100 小时论文阅读挑战</h1><p class="muted">每天积累一点，让阅读成为持续的研究习惯。</p><section><div class="row"><button id="login" class="primary">Google 登入</button><button id="logout">登出</button><span id="cloud">尚未登入</span></div></section><section><div class="stats"><div class="stat">剩余目标<strong id="left"></strong></div><div class="stat">累计阅读<strong id="total"></strong></div><div class="stat">完成比例<strong id="percent"></strong></div></div><div class="track"><div class="bar" id="bar"></div></div><div class="row"><span id="today"></span> · <span id="week"></span> · <span id="month"></span></div></section><section class="timer"><div class="row"><button id="focus">论文阅读</button><button id="rest">休息模式</button></div><div class="clock" id="clock">25:00</div><div id="status" class="muted" aria-live="polite">准备开始</div><div class="row" style="margin:20px 0"><button class="primary" id="start">开始</button><button id="pause">暂停</button><button id="finish">结束并保存</button></div><div class="row"><label>阅读（分钟） <input id="focusMin" type="number" min="1" max="600" value="25"></label><label>休息（分钟） <input id="restMin" type="number" min="1" max="120" value="5"></label></div></section><section><h2>本次阅读内容</h2><label for="paper">论文名称／阅读主题</label><input type="text" id="paper" placeholder="例如：游戏化教学与学习成效"><label for="notes">阅读心得、研究发现或待解决问题</label><textarea id="notes" rows="4" placeholder="研究目的、理论架构、研究方法、主要发现……"></textarea><small>修改内容后请点击保存。<button id="saveNotes">保存阅读内容</button></small></section><section><h2>阅读记录</h2><div id="history"></div></section><section><h2>数据管理</h2><div class="row"><button id="export">导出备份</button><button id="import">导入备份</button><input hidden type="file" id="file" accept="application/json,.json"></div></section><footer>数据储存在 Firebase 云端。登入同一账号即可同步。离线时不允许修改计时状态。手机锁屏或切换应用时，计时依据实际时间计算，但结束提醒可能延迟至重新打开网页。休息时间不计入100小时目标。</footer></main><script type="module">
-import {initializeApp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
-import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
-import {getFirestore,doc,onSnapshot,runTransaction} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
-// 将 Firebase 控制台提供的 firebaseConfig 完整替换到这里
-const firebaseConfig = {apiKey:'AIzaSyAUCGhlRImAl0pGKTREJDRuMudLWzalKY0',authDomain:'academic-reading-100h.firebaseapp.com',projectId:'academic-reading-100h',storageBucket:'academic-reading-100h.firebasestorage.app',messagingSenderId:'256036072128',appId:'1:256036072128:web:b5f06bcebbe04b0321db25'};
-const $=id=>document.getElementById(id),GOAL=360000;
-const fresh=()=>({logs:[],focus:25,rest:5,mode:'focus',elapsed:0,since:null,paper:'',notes:''});
-let d=fresh(),ref=null,unsub=null,ready=false,busy=false,dirty=false,auth,db;
-const duration=x=>x[x.mode]*60;
-const elapsed=(x,now=Date.now())=>Math.min(duration(x),x.elapsed+(x.since==null?0:Math.max(0,(now-x.since)/1000)));
-function settle(x,now,force=false){let e=Math.floor(elapsed(x,now));if(!force&&!(x.since!==null&&e>=duration(x)))return false;if(x.mode==='focus'&&e>0)x.logs.push({id:crypto.randomUUID(),date:x.since===null?now:Math.min(now,x.since+(duration(x)-x.elapsed)*1000),seconds:e,paper:x.paper,notes:x.notes});x.elapsed=0;x.since=null;return true;}
-async function change(fn){if(!ready||busy||!ref||!navigator.onLine)return;busy=true;try{const target=ref;await runTransaction(db,async t=>{const snap=await t.get(target);let x=snap.exists()?snap.data():fresh();let now=Date.now();settle(x,now);fn(x,now);t.set(target,x)});}catch(e){alert('同步失败：'+e.message)}finally{busy=false;tick()}}
-function fmt(s){s=Math.max(0,Math.floor(s));return Math.floor(s/3600)+'小时 '+Math.floor(s%3600/60)+'分 '+s%60+'秒'}
-function history(){let h=$('history');h.replaceChildren();if(!d.logs.length)h.textContent='暂无记录';for(const l of [...d.logs].reverse()){let e=document.createElement('div');e.className='entry';for(const v of [l.paper||'未命名论文',new Date(l.date).toLocaleString()+' · '+fmt(l.seconds),l.notes||'']){let p=document.createElement('p');p.textContent=v;e.append(p)}let b=document.createElement('button');b.textContent='删除';b.onclick=()=>{if(confirm('删除此记录？'))change(x=>{x.logs=x.logs.filter(a=>a.id!==l.id)})};e.append(b);h.append(e)}}
-function tick(){let e=elapsed(d),r=Math.ceil(duration(d)-e),live=d.mode==='focus'?Math.floor(e):0,total=d.logs.reduce((a,l)=>a+l.seconds,0)+live; $('clock').textContent=String(Math.floor(r/60)).padStart(2,'0')+':'+String(r%60).padStart(2,'0');$('left').textContent=fmt(GOAL-total);$('total').textContent=fmt(total);$('percent').textContent=(total/GOAL*100).toFixed(2)+'%';$('bar').style.width=Math.min(100,total/GOAL*100)+'%';let day=new Date();day.setHours(0,0,0,0);let week=new Date(day);week.setDate(week.getDate()-(week.getDay()+6)%7);let month=new Date(day);month.setDate(1);for(const [k,t,label] of [['today',day,'今日'],['week',week,'本周'],['month',month,'本月']])$(k).textContent=label+' '+fmt(d.logs.filter(l=>l.date>=+t).reduce((a,l)=>a+l.seconds,0)+live);let lock=!ready||busy||!navigator.onLine;for(const k of ['focus','rest','saveNotes','import'])$(k).disabled=lock;$('start').disabled=lock||d.since!==null;$('pause').disabled=lock||d.since===null;$('finish').disabled=lock||e<=0;$('focusMin').disabled=$('restMin').disabled=lock||e>0||d.since!==null;$('start').textContent=e>0?'继续':'开始';$('focus').className=d.mode==='focus'?'primary':'';$('rest').className=d.mode==='rest'?'primary':'';$('status').textContent=!ready?'等待云端连接':!navigator.onLine?'离线 · 只读':d.since!==null?'计时中':e>0?'已暂停':'准备开始';if(!lock&&d.since!==null&&e>=duration(d))change(()=>{});}
-function render(){ $('focusMin').value=d.focus;$('restMin').value=d.rest;if(!dirty){$('paper').value=d.paper;$('notes').value=d.notes}history();tick()}
-try{if(firebaseConfig.apiKey==='YOUR_API_KEY')throw Error('请先填写 Firebase 配置');let app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app);$('login').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>alert(e.message));$('logout').onclick=()=>signOut(auth);onAuthStateChanged(auth,u=>{unsub?.();ready=false;dirty=false;ref=null;d=fresh();render();$('cloud').textContent=u?'连接中：'+u.email:'尚未登入';if(!u)return;ref=doc(db,'users',u.uid);unsub=onSnapshot(ref,s=>{d=s.exists()?s.data():fresh();ready=!s.metadata.fromCache;$('cloud').textContent=ready?'云端已连接：'+u.email:'等待服务器连接';render()},e=>{$('cloud').textContent=e.message;ready=false;tick()})})}catch(e){$('cloud').textContent=e.message;$('login').disabled=true}
-for(const k of ['paper','notes'])$(k).oninput=()=>dirty=true;
-function draft(x){if(dirty){x.paper=$('paper').value;x.notes=$('notes').value}}
-$('saveNotes').onclick=async()=>{await change(draft);dirty=false};$('start').onclick=()=>change((x,n)=>{draft(x);if(x.since===null)x.since=n});$('pause').onclick=()=>change((x,n)=>{draft(x);x.elapsed=elapsed(x,n);x.since=null});$('finish').onclick=()=>change((x,n)=>{draft(x);settle(x,n,true)});for(const k of ['focus','rest']){$(k).onclick=()=>change((x,n)=>{if(x.mode!==k&&elapsed(x,n)===0)x.mode=k});$(k+'Min').onchange=()=>{let v=Math.max(1,Math.min(+$(k+'Min').max,Math.round(+$(k+'Min').value||1)));change(x=>{if(elapsed(x)===0&&x.since===null)x[k]=v})}}$('export').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='reading-backup.json';a.click()};$('import').onclick=()=>$('file').click();$('file').onchange=async()=>{try{let x=JSON.parse(await $('file').files[0].text());if(!Array.isArray(x.logs)||!x.logs.every(l=>typeof l.id==='string'&&Number.isFinite(l.seconds)&&l.seconds>=0&&Number.isFinite(l.date)))throw Error('无效备份');if(confirm('合并备份记录？'))await change(y=>{let ids=new Set(y.logs.map(l=>l.id));for(const l of x.logs)if(!ids.has(l.id)){y.logs.push(l);ids.add(l.id)}})}catch(e){alert(e.message)}$('file').value=''};render();setInterval(tick,500);
-</script></html>
+
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>100小时论文阅读挑战</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    background:#f3f6f8;
+    color:#17333c;
+    font:16px system-ui,sans-serif
+}
+
+main{
+    max-width:900px;
+    margin:auto;
+    padding:24px 16px
+}
+
+h1{font-size:28px;margin:8px 0}
+h2{font-size:19px}
+small,.muted{color:#60777d}
+
+section{
+    background:white;
+    border:1px solid #dce6e8;
+    border-radius:20px;
+    padding:22px;
+    margin:16px 0
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px
+}
+
+.stat{
+    background:#edf5f3;
+    padding:14px;
+    border-radius:12px
+}
+
+.stat strong{
+    display:block;
+    font-size:24px;
+    margin-top:8px
+}
+
+.track{
+    height:12px;
+    background:#e1eae9;
+    border-radius:20px;
+    overflow:hidden;
+    margin:16px 0
+}
+
+.bar{
+    height:100%;
+    background:#168477;
+    width:0;
+    transition:width .3s
+}
+
+.timer{text-align:center}
+
+.clock{
+    font-size:clamp(64px,15vw,112px);
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-4px;
+    margin:20px 0
+}
+
+.row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center
+}
+
+button,input,textarea{
+    font:inherit;
+    border-radius:10px;
+    padding:12px;
+    border:1px solid #cbdad9
+}
+
+button{
+    cursor:pointer;
+    background:#eaf3f1;
+    color:#17554e;
+    font-weight:600
+}
+
+button.primary{
+    background:#14796e;
+    color:white;
+    border-color:#14796e
+}
+
+button:disabled{
+    opacity:.4;
+    cursor:default
+}
+
+input[type=number]{width:95px}
+
+input[type=text],textarea{
+    width:100%;
+    margin:6px 0 12px
+}
+
+textarea{resize:vertical}
+label{font-size:14px}
+.timer .row{justify-content:center}
+
+.entry{
+    border-top:1px solid #e1eae9;
+    padding:14px 0;
+    overflow-wrap:anywhere
+}
+
+.entry p{
+    white-space:pre-wrap;
+    margin:6px 0
+}
+
+.entry button{padding:5px 10px}
+
+footer{
+    font-size:13px;
+    color:#60777d;
+    line-height:1.7
+}
+
+/* 新增：音乐提醒设置 */
+
+.sound-settings{
+    margin-top:20px;
+    padding-top:16px;
+    border-top:1px solid #e1eae9;
+    justify-content:center;
+    gap:16px
+}
+
+.sound-settings label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#60777d
+}
+
+.sound-settings input[type=checkbox]{
+    accent-color:#14796e;
+    width:17px;
+    height:17px
+}
+
+.sound-settings input[type=range]{
+    width:85px;
+    accent-color:#14796e;
+    padding:0
+}
+
+.sound-settings button{
+    font-size:13px;
+    padding:8px 12px
+}
+
+.sound-message{
+    font-size:12px;
+    color:#60777d;
+    margin-top:10px
+}
+
+@media(max-width:520px){
+    .stats{
+        grid-template-columns:1fr 1fr
+    }
+
+    .stat:first-child{
+        grid-column:span 2
+    }
+
+    .stat strong{font-size:22px}
+    section{padding:16px}
+    button{min-height:44px}
+
+    .sound-settings{
+        gap:12px
+    }
+}
+</style>
+</head>
+
+<body>
+<main>
+
+<small>ACADEMIC READING TRACKER · 100H CHALLENGE</small>
+
+<h1>100 小时论文阅读挑战</h1>
+
+<p class="muted">
+每天积累一点，让阅读成为持续的研究习惯。
+</p>
+
+<!-- Google 登入 -->
+
+<section>
+    <div class="row">
+        <button id="login" class="primary">
+            Google 登入
+        </button>
+
+        <button id="logout">登出</button>
+
+        <span id="cloud">尚未登入</span>
+    </div>
+</section>
+
+<!-- 阅读统计 -->
+
+<section>
+    <div class="stats">
+
+        <div class="stat">
+            剩余目标
+            <strong id="left"></strong>
+        </div>
+
+        <div class="stat">
+            累计阅读
+            <strong id="total"></strong>
+        </div>
+
+        <div class="stat">
+            完成比例
+            <strong id="percent"></strong>
+        </div>
+
+    </div>
+
+    <div class="track">
+        <div class="bar" id="bar"></div>
+    </div>
+
+    <div class="row">
+        <span id="today"></span>
+        ·
+        <span id="week"></span>
+        ·
+        <span id="month"></span>
+    </div>
+</section>
+
+<!-- 番茄钟计时器 -->
+
+<section class="timer">
+
+    <div class="row">
+        <button id="focus">论文阅读</button>
+        <button id="rest">休息模式</button>
+    </div>
+
+    <div class="clock" id="clock">25:00</div>
+
+    <div id="status"
+         class="muted"
+         aria-live="polite">
+        准备开始
+    </div>
+
+    <div class="row" style="margin:20px 0">
+
+        <button class="primary" id="start">
+            开始
+        </button>
+
+        <button id="pause">暂停</button>
+
+        <button id="finish">
+            结束并保存
+        </button>
+
+    </div>
+
+    <div class="row">
+
+        <label>
+            阅读（分钟）
+            <input id="focusMin"
+                   type="number"
+                   min="1"
+                   max="600"
+                   value="25">
+        </label>
+
+        <label>
+            休息（分钟）
+            <input id="restMin"
+                   type="number"
+                   min="1"
+                   max="120"
+                   value="5">
+        </label>
+
+    </div>
+
+    <!-- 新增：声音提醒控制 -->
+
+    <div class="row sound-settings">
+
+        <label>
+            <input type="checkbox"
+                   id="soundEnabled"
+                   checked>
+            温和音乐提醒
+        </label>
+
+        <label>
+            音量
+            <input type="range"
+                   id="soundVolume"
+                   min="0"
+                   max="100"
+                   value="35">
+
+            <span id="volumeText">35%</span>
+        </label>
+
+        <button id="previewSound">
+            ♫ 试听音乐
+        </button>
+
+    </div>
+
+    <div class="sound-message" id="soundMessage">
+        倒计时结束后，将播放柔和的轻音乐。
+    </div>
+
+</section>
+
+<!-- 阅读内容 -->
+
+<section>
+
+    <h2>本次阅读内容</h2>
+
+    <label for="paper">
+        论文名称／阅读主题
+    </label>
+
+    <input type="text"
+           id="paper"
+           placeholder="例如：游戏化教学与学习成效">
+
+    <label for="notes">
+        阅读心得、研究发现或待解决问题
+    </label>
+
+    <textarea id="notes"
+              rows="4"
+              placeholder="研究目的、理论架构、研究方法、主要发现……"></textarea>
+
+    <small>
+        修改内容后请点击保存。
+        <button id="saveNotes">
+            保存阅读内容
+        </button>
+    </small>
+
+</section>
+
+<!-- 阅读历史 -->
+
+<section>
+    <h2>阅读记录</h2>
+    <div id="history"></div>
+</section>
+
+<!-- 数据管理 -->
+
+<section>
+
+    <h2>数据管理</h2>
+
+    <div class="row">
+
+        <button id="export">
+            导出备份
+        </button>
+
+        <button id="import">
+            导入备份
+        </button>
+
+        <input hidden
+               type="file"
+               id="file"
+               accept="application/json,.json">
+
+    </div>
+
+</section>
+
+<footer>
+    数据储存在 Firebase 云端。
+    登入同一账号即可同步。
+    离线时不允许修改计时状态。
+    手机锁屏或切换应用时，计时依据实际时间计算，
+    但结束提醒可能延迟至重新打开网页。
+    休息时间不计入100小时目标。
+    关闭网页后无法播放提醒音乐。
+</footer>
+
+</main>
+
+<script type="module">
+
+// ========================================
+// 1. Firebase 模组
+// ========================================
+
+import {
+    initializeApp
+} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
+
+import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
+
+import {
+    getFirestore,
+    doc,
+    onSnapshot,
+    runTransaction
+} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
+
+
+// ========================================
+// 2. Firebase 配置
+// 保留原本的 Firebase 项目
+// ========================================
+
+const firebaseConfig = {
+    apiKey:'AIzaSyAUCGhlRImAl0pGKTREJDRuMudLWzalKY0',
+    authDomain:'academic-reading-100h.firebaseapp.com',
+    projectId:'academic-reading-100h',
+    storageBucket:'academic-reading-100h.firebasestorage.app',
+    messagingSenderId:'256036072128',
+    appId:'1:256036072128:web:b5f06bcebbe04b0321db25'
+};
+
+
+// ========================================
+// 3. 基础变量
+// ========================================
+
+const $ = id => document.getElementById(id);
+
+const GOAL = 360000;
+
+const ORIGINAL_TITLE = '100小时论文阅读挑战';
+
+const fresh = () => ({
+    logs:[],
+    focus:25,
+    rest:5,
+    mode:'focus',
+    elapsed:0,
+    since:null,
+    paper:'',
+    notes:''
+});
+
+let d = fresh();
+
+let ref = null;
+let unsub = null;
+let ready = false;
+let busy = false;
+let dirty = false;
+let auth;
+let db;
+
+
+// ========================================
+// 4. 声音提醒系统
+// ========================================
+
+let audioCtx = null;
+let activeAudio = null;
+let lastAlarmKey = null;
+let completedUntil = 0;
+let completedMode = 'focus';
+let watchedTimer = null;
+
+function getPreference(key, fallback) {
+    try {
+        return localStorage.getItem(key) ?? fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+function setPreference(key, value) {
+    try {
+        localStorage.setItem(key, value);
+    } catch {}
+}
+
+// 读取本机声音设置
+
+$('soundEnabled').checked =
+    getPreference('readingSoundEnabled','true') !== 'false';
+
+$('soundVolume').value =
+    getPreference('readingSoundVolume','35');
+
+$('volumeText').textContent =
+    $('soundVolume').value + '%';
+
+
+// 初始化浏览器声音权限
+
+async function unlockAudio(){
+
+    try{
+
+        if(!audioCtx){
+
+            const AudioContext =
+                window.AudioContext ||
+                window.webkitAudioContext;
+
+            if(!AudioContext){
+                return false;
+            }
+
+            audioCtx = new AudioContext();
+
+        }
+
+        if(audioCtx.state === 'suspended'){
+            await audioCtx.resume();
+        }
+
+        return audioCtx.state === 'running';
+
+    }catch(error){
+
+        console.warn('声音初始化失败',error);
+
+        return false;
+
+    }
+
+}
+
+
+// 停止音乐
+
+function stopMusic(){
+
+    if(activeAudio && audioCtx){
+
+        activeAudio.gain.cancelScheduledValues(
+            audioCtx.currentTime
+        );
+
+        activeAudio.gain.setTargetAtTime(
+            0,
+            audioCtx.currentTime,
+            0.05
+        );
+
+        activeAudio = null;
+
+    }
+
+}
+
+
+// 播放温和轻音乐
+
+async function playGentleMusic(preview = false){
+
+    if(!preview && !$('soundEnabled').checked){
+        return;
+    }
+
+    if(!(await unlockAudio())){
+
+        $('soundMessage').textContent =
+            '浏览器尚未允许播放声音，请点击试听音乐。';
+
+        return;
+
+    }
+
+    stopMusic();
+
+    const now = audioCtx.currentTime;
+
+    const volume =
+        Number($('soundVolume').value) / 100;
+
+    const master = audioCtx.createGain();
+
+    master.gain.value = volume * 0.45;
+
+    master.connect(audioCtx.destination);
+
+    activeAudio = master;
+
+    $('soundMessage').textContent =
+        preview ? '正在试听温和轻音乐……' :
+                  '计时结束，辛苦了！';
+
+    // 原创舒缓旋律
+    // 频率、开始时间、持续时间
+
+    const melody = [
+
+        [261.63,0.00,1.80],
+        [329.63,0.65,1.80],
+        [392.00,1.30,2.00],
+        [523.25,2.10,2.20],
+        [440.00,3.00,1.80],
+        [392.00,3.80,1.80],
+        [329.63,4.60,2.00],
+        [261.63,5.50,2.50]
+
+    ];
+
+    // 生成柔和的音符
+
+    function playNote(
+        frequency,
+        offset,
+        length,
+        strength = 0.32
+    ){
+
+        const start = now + offset;
+        const end = start + length;
+
+        const oscillator =
+            audioCtx.createOscillator();
+
+        const harmonic =
+            audioCtx.createOscillator();
+
+        const envelope =
+            audioCtx.createGain();
+
+        const harmonicGain =
+            audioCtx.createGain();
+
+        oscillator.type = 'sine';
+
+        oscillator.frequency.value =
+            frequency;
+
+        harmonic.type = 'sine';
+
+        harmonic.frequency.value =
+            frequency * 2;
+
+        harmonicGain.gain.value = 0.12;
+
+        oscillator.connect(envelope);
+
+        harmonic.connect(harmonicGain);
+
+        harmonicGain.connect(envelope);
+
+        envelope.connect(master);
+
+        // 音量渐入渐出
+
+        envelope.gain.setValueAtTime(
+            0.0001,
+            start
+        );
+
+        envelope.gain.exponentialRampToValueAtTime(
+            strength,
+            start + 0.12
+        );
+
+        envelope.gain.exponentialRampToValueAtTime(
+            strength * 0.32,
+            start + 0.45
+        );
+
+        envelope.gain.exponentialRampToValueAtTime(
+            0.0001,
+            end
+        );
+
+        oscillator.start(start);
+        harmonic.start(start);
+
+        oscillator.stop(end + 0.05);
+        harmonic.stop(end + 0.05);
+
+        oscillator.onended = () => {
+            oscillator.disconnect();
+            harmonic.disconnect();
+            harmonicGain.disconnect();
+            envelope.disconnect();
+        };
+
+    }
+
+    // 主旋律
+
+    melody.forEach(([frequency,offset,length])=>{
+
+        playNote(
+            frequency,
+            offset,
+            length
+        );
+
+    });
+
+    // 低音伴奏，营造放松的感觉
+
+    playNote(130.81,0,3.5,0.12);
+    playNote(196.00,2.1,3.5,0.10);
+    playNote(174.61,3.8,3.0,0.10);
+    playNote(130.81,5.5,2.5,0.12);
+
+    // 播放完成后释放声音节点
+
+    setTimeout(()=>{
+
+        master.disconnect();
+
+        if(activeAudio === master){
+
+            activeAudio = null;
+
+            $('soundMessage').textContent =
+                '倒计时结束后，将播放柔和的轻音乐。';
+
+        }
+
+    },8500);
+
+}
+
+
+// 声音开关
+
+$('soundEnabled').onchange = ()=>{
+
+    setPreference(
+        'readingSoundEnabled',
+        String($('soundEnabled').checked)
+    );
+
+    if(!$('soundEnabled').checked){
+
+        stopMusic();
+
+        $('soundMessage').textContent =
+            '声音提醒已关闭。';
+
+    }else{
+
+        unlockAudio();
+
+        $('soundMessage').textContent =
+            '声音提醒已开启。';
+
+    }
+
+};
+
+
+// 音量调整
+
+$('soundVolume').oninput = ()=>{
+
+    const value = $('soundVolume').value;
+
+    $('volumeText').textContent =
+        value + '%';
+
+    setPreference(
+        'readingSoundVolume',
+        value
+    );
+
+    if(activeAudio && audioCtx){
+
+        activeAudio.gain.setTargetAtTime(
+            Number(value) / 100 * 0.45,
+            audioCtx.currentTime,
+            0.1
+        );
+
+    }
+
+};
+
+
+// 试听音乐
+
+$('previewSound').onclick = ()=>{
+
+    playGentleMusic(true);
+
+};
+
+
+// 首次操作时解锁声音
+
+document.addEventListener(
+    'pointerdown',
+    ()=>unlockAudio(),
+    {once:true}
+);
+
+
+// ========================================
+// 5. 时间计算
+// ========================================
+
+const duration = x => x[x.mode] * 60;
+
+const elapsed = (x,now = Date.now()) =>
+
+    Math.min(
+
+        duration(x),
+
+        x.elapsed + (
+
+            x.since == null
+                ? 0
+                : Math.max(
+                    0,
+                    (now-x.since)/1000
+                )
+
+        )
+
+    );
+
+
+// 时间格式化
+
+function fmt(s){
+
+    s = Math.max(0,Math.floor(s));
+
+    return Math.floor(s/3600) +
+        '小时 ' +
+        Math.floor(s%3600/60) +
+        '分 ' +
+        s%60 +
+        '秒';
+
+}
+
+
+// 倒计时格式化
+
+function formatClock(seconds){
+
+    seconds = Math.max(
+        0,
+        Math.ceil(seconds)
+    );
+
+    return String(
+        Math.floor(seconds/60)
+    ).padStart(2,'0') +
+
+    ':' +
+
+    String(
+        seconds%60
+    ).padStart(2,'0');
+
+}
+
+
+// ========================================
+// 6. 浏览器分页标签倒计时
+// ========================================
+
+function updateTabTitle(remaining,used){
+
+    const time = formatClock(remaining);
+
+    if(!ready){
+
+        document.title = ORIGINAL_TITLE;
+
+        return;
+
+    }
+
+    if(
+        d.since !== null &&
+        remaining > 0
+    ){
+
+        document.title = d.mode === 'focus'
+            ? `${time} - 论文阅读中`
+            : `${time} - 休息中`;
+
+    }else if(Date.now() < completedUntil){
+
+        document.title =
+            completedMode === 'focus'
+            ? '阅读完成 - 100小时挑战'
+            : '休息结束 - 100小时挑战';
+
+    }else if(
+        d.since === null &&
+        used > 0
+    ){
+
+        document.title =
+            `${time} - 已暂停`;
+
+    }else if(
+        d.since !== null &&
+        remaining === 0
+    ){
+
+        document.title =
+            d.mode === 'focus'
+            ? '阅读完成 - 100小时挑战'
+            : '休息结束 - 100小时挑战';
+
+    }else{
+
+        document.title = ORIGINAL_TITLE;
+
+    }
+
+}
+
+
+// ========================================
+// 7. 计时结束提醒
+// ========================================
+
+function triggerAlarm(timer){
+
+    if(!timer) return;
+
+    if(lastAlarmKey === timer.key){
+        return;
+    }
+
+    lastAlarmKey = timer.key;
+
+    completedMode = timer.mode;
+
+    completedUntil =
+        Date.now() + 60000;
+
+    document.title =
+        timer.mode === 'focus'
+        ? '阅读完成 - 100小时挑战'
+        : '休息结束 - 100小时挑战';
+
+    playGentleMusic();
+
+}
+
+
+function checkTimerAlarm(){
+
+    if(!ready) return;
+
+    const now = Date.now();
+
+    if(d.since !== null){
+
+        watchedTimer = {
+
+            key:
+                `${d.mode}-${d.since}`,
+
+            mode:d.mode,
+
+            end:
+                d.since +
+                (duration(d)-d.elapsed)*1000
+
+        };
+
+        if(now >= watchedTimer.end){
+
+            triggerAlarm(watchedTimer);
+
+        }
+
+    }else if(watchedTimer){
+
+        // 处理其他装置先完成云端保存的情况
+
+        if(
+            now >= watchedTimer.end &&
+            now-watchedTimer.end < 60000 &&
+            d.elapsed === 0
+        ){
+
+            triggerAlarm(watchedTimer);
+
+        }
+
+        watchedTimer = null;
+
+    }
+
+}
+
+
+// ========================================
+// 8. 阅读记录结算
+// ========================================
+
+function settle(x,now,force = false){
+
+    let e = Math.floor(
+        elapsed(x,now)
+    );
+
+    if(
+        !force &&
+        !(
+            x.since !== null &&
+            e >= duration(x)
+        )
+    ){
+
+        return false;
+
+    }
+
+    if(x.mode === 'focus' && e > 0){
+
+        x.logs.push({
+
+            id:crypto.randomUUID(),
+
+            date:x.since === null
+                ? now
+                : Math.min(
+                    now,
+                    x.since +
+                    (duration(x)-x.elapsed)*1000
+                ),
+
+            seconds:e,
+
+            paper:x.paper,
+
+            notes:x.notes
+
+        });
+
+    }
+
+    x.elapsed = 0;
+    x.since = null;
+
+    return true;
+
+}
+
+
+// ========================================
+// 9. Firebase 云端事务
+// ========================================
+
+async function change(fn){
+
+    if(
+        !ready ||
+        busy ||
+        !ref ||
+        !navigator.onLine
+    ){
+
+        return false;
+
+    }
+
+    busy = true;
+
+    try{
+
+        const target = ref;
+
+        await runTransaction(
+            db,
+            async t=>{
+
+                const snap =
+                    await t.get(target);
+
+                let x = snap.exists()
+                    ? snap.data()
+                    : fresh();
+
+                let now = Date.now();
+
+                settle(x,now);
+
+                fn(x,now);
+
+                t.set(target,x);
+
+            }
+        );
+
+        return true;
+
+    }catch(e){
+
+        alert(
+            '同步失败：' + e.message
+        );
+
+        return false;
+
+    }finally{
+
+        busy = false;
+
+        tick();
+
+    }
+
+}
+
+
+// ========================================
+// 10. 阅读历史记录
+// ========================================
+
+function history(){
+
+    let h = $('history');
+
+    h.replaceChildren();
+
+    if(!d.logs.length){
+
+        h.textContent = '暂无记录';
+
+    }
+
+    for(
+        const l of [...d.logs].reverse()
+    ){
+
+        let e =
+            document.createElement('div');
+
+        e.className = 'entry';
+
+        for(
+            const v of [
+
+                l.paper || '未命名论文',
+
+                new Date(l.date)
+                    .toLocaleString() +
+                    ' · ' +
+                    fmt(l.seconds),
+
+                l.notes || ''
+
+            ]
+        ){
+
+            let p =
+                document.createElement('p');
+
+            p.textContent = v;
+
+            e.append(p);
+
+        }
+
+        let b =
+            document.createElement('button');
+
+        b.textContent = '删除';
+
+        b.onclick = ()=>{
+
+            if(confirm('删除此记录？')){
+
+                change(x=>{
+
+                    x.logs = x.logs.filter(
+                        a=>a.id !== l.id
+                    );
+
+                });
+
+            }
+
+        };
+
+        e.append(b);
+
+        h.append(e);
+
+    }
+
+}
+
+
+// ========================================
+// 11. 核心计时与界面更新
+// ========================================
+
+function tick(){
+
+    let e = elapsed(d);
+
+    let r = Math.ceil(
+        duration(d)-e
+    );
+
+    let live =
+        d.mode === 'focus'
+        ? Math.floor(e)
+        : 0;
+
+    let total =
+        d.logs.reduce(
+            (a,l)=>a+l.seconds,
+            0
+        ) + live;
+
+
+    // 检查计时结束
+
+    checkTimerAlarm();
+
+
+    // 更新网页倒计时
+
+    $('clock').textContent =
+        formatClock(r);
+
+
+    // 更新浏览器分页标签
+
+    updateTabTitle(r,e);
+
+
+    // 更新100小时目标
+
+    $('left').textContent =
+        fmt(GOAL-total);
+
+    $('total').textContent =
+        fmt(total);
+
+    $('percent').textContent =
+        (total/GOAL*100).toFixed(2)+'%';
+
+    $('bar').style.width =
+        Math.min(
+            100,
+            total/GOAL*100
+        )+'%';
+
+
+    // 今日、本周、本月统计
+
+    let day = new Date();
+
+    day.setHours(0,0,0,0);
+
+    let week = new Date(day);
+
+    week.setDate(
+        week.getDate() -
+        (week.getDay()+6)%7
+    );
+
+    let month = new Date(day);
+
+    month.setDate(1);
+
+    for(
+        const [k,t,label] of [
+
+            ['today',day,'今日'],
+            ['week',week,'本周'],
+            ['month',month,'本月']
+
+        ]
+    ){
+
+        $(k).textContent =
+
+            label + ' ' +
+
+            fmt(
+
+                d.logs.filter(
+                    l=>l.date >= +t
+                ).reduce(
+                    (a,l)=>a+l.seconds,
+                    0
+                ) + live
+
+            );
+
+    }
+
+
+    // 按钮控制
+
+    let lock =
+        !ready ||
+        busy ||
+        !navigator.onLine;
+
+    for(
+        const k of [
+            'focus',
+            'rest',
+            'saveNotes',
+            'import'
+        ]
+    ){
+
+        $(k).disabled = lock;
+
+    }
+
+    $('start').disabled =
+        lock ||
+        d.since !== null;
+
+    $('pause').disabled =
+        lock ||
+        d.since === null;
+
+    $('finish').disabled =
+        lock ||
+        e <= 0;
+
+    $('focusMin').disabled =
+    $('restMin').disabled =
+
+        lock ||
+        e > 0 ||
+        d.since !== null;
+
+    $('start').textContent =
+        e > 0 ? '继续' : '开始';
+
+    $('focus').className =
+        d.mode === 'focus'
+        ? 'primary'
+        : '';
+
+    $('rest').className =
+        d.mode === 'rest'
+        ? 'primary'
+        : '';
+
+
+    // 计时状态
+
+    if(!ready){
+
+        $('status').textContent =
+            '等待云端连接';
+
+    }else if(!navigator.onLine){
+
+        $('status').textContent =
+            '离线 · 只读';
+
+    }else if(
+        d.since !== null &&
+        r > 0
+    ){
+
+        $('status').textContent =
+            '计时中';
+
+    }else if(
+        Date.now() < completedUntil
+    ){
+
+        $('status').textContent =
+            completedMode === 'focus'
+            ? '✓ 阅读完成，辛苦了！'
+            : '✓ 休息结束，准备继续阅读！';
+
+    }else if(e > 0){
+
+        $('status').textContent =
+            '已暂停';
+
+    }else{
+
+        $('status').textContent =
+            '准备开始';
+
+    }
+
+
+    // 计时结束后自动保存
+
+    if(
+        !lock &&
+        d.since !== null &&
+        e >= duration(d)
+    ){
+
+        change(()=>{});
+
+    }
+
+}
+
+
+// ========================================
+// 12. 页面渲染
+// ========================================
+
+function render(){
+
+    $('focusMin').value = d.focus;
+
+    $('restMin').value = d.rest;
+
+    if(!dirty){
+
+        $('paper').value = d.paper;
+
+        $('notes').value = d.notes;
+
+    }
+
+    history();
+
+    tick();
+
+}
+
+
+// ========================================
+// 13. Firebase 初始化及 Google 登入
+// ========================================
+
+try{
+
+    if(
+        firebaseConfig.apiKey ===
+        'YOUR_API_KEY'
+    ){
+
+        throw Error(
+            '请先填写 Firebase 配置'
+        );
+
+    }
+
+    let app =
+        initializeApp(firebaseConfig);
+
+    auth = getAuth(app);
+
+    db = getFirestore(app);
+
+
+    // Google 登入
+
+    $('login').onclick = ()=>{
+
+        unlockAudio();
+
+        signInWithPopup(
+            auth,
+            new GoogleAuthProvider()
+        ).catch(
+            e=>alert(e.message)
+        );
+
+    };
+
+
+    // 登出
+
+    $('logout').onclick = ()=>{
+
+        signOut(auth).catch(
+            e=>alert(e.message)
+        );
+
+    };
+
+
+    // 监听登入状态
+
+    onAuthStateChanged(auth,u=>{
+
+        unsub?.();
+
+        ready = false;
+
+        dirty = false;
+
+        ref = null;
+
+        watchedTimer = null;
+
+        lastAlarmKey = null;
+
+        completedUntil = 0;
+
+        stopMusic();
+
+        d = fresh();
+
+        render();
+
+        $('cloud').textContent =
+            u
+            ? '连接中：'+u.email
+            : '尚未登入';
+
+        $('login').disabled = !!u;
+
+        $('logout').disabled = !u;
+
+        if(!u) return;
+
+
+        // 连接原本的 Firebase 数据
+
+        ref = doc(
+            db,
+            'users',
+            u.uid
+        );
+
+
+        // 实时监听云端数据
+
+        unsub = onSnapshot(
+
+            ref,
+
+            {includeMetadataChanges:true},
+
+            s=>{
+
+                d = s.exists()
+                    ? s.data()
+                    : fresh();
+
+                ready =
+                    !s.metadata.fromCache;
+
+                $('cloud').textContent =
+                    ready
+                    ? '云端已连接：'+u.email
+                    : '等待服务器连接';
+
+                render();
+
+            },
+
+            e=>{
+
+                $('cloud').textContent =
+                    e.message;
+
+                ready = false;
+
+                tick();
+
+            }
+
+        );
+
+    });
+
+}catch(e){
+
+    $('cloud').textContent =
+        e.message;
+
+    $('login').disabled = true;
+
+}
+
+
+// ========================================
+// 14. 阅读笔记保存
+// ========================================
+
+for(
+    const k of ['paper','notes']
+){
+
+    $(k).oninput = ()=>{
+
+        dirty = true;
+
+    };
+
+}
+
+function draft(x){
+
+    if(dirty){
+
+        x.paper = $('paper').value;
+
+        x.notes = $('notes').value;
+
+    }
+
+}
+
+$('saveNotes').onclick = async()=>{
+
+    const paper = $('paper').value;
+    const notes = $('notes').value;
+
+    const success = await change(x=>{
+
+        x.paper = paper;
+        x.notes = notes;
+
+    });
+
+    if(
+        success &&
+        $('paper').value === paper &&
+        $('notes').value === notes
+    ){
+
+        dirty = false;
+
+    }
+
+};
+
+
+// ========================================
+// 15. 开始、暂停、结束
+// ========================================
+
+// 开始／继续
+
+$('start').onclick = async()=>{
+
+    completedUntil = 0;
+
+    unlockAudio();
+
+    await change((x,n)=>{
+
+        draft(x);
+
+        if(x.since === null){
+
+            x.since = n;
+
+        }
+
+    });
+
+};
+
+
+// 暂停
+
+$('pause').onclick = ()=>{
+
+    change((x,n)=>{
+
+        draft(x);
+
+        x.elapsed = elapsed(x,n);
+
+        x.since = null;
+
+    });
+
+};
+
+
+// 结束并保存
+
+$('finish').onclick = ()=>{
+
+    change((x,n)=>{
+
+        draft(x);
+
+        settle(x,n,true);
+
+    });
+
+};
+
+
+// ========================================
+// 16. 阅读／休息模式切换
+// ========================================
+
+for(
+    const k of ['focus','rest']
+){
+
+    $(k).onclick = ()=>{
+
+        completedUntil = 0;
+
+        change((x,n)=>{
+
+            if(
+                x.mode !== k &&
+                elapsed(x,n) === 0
+            ){
+
+                x.mode = k;
+
+            }
+
+        });
+
+    };
+
+
+    // 修改阅读或休息时间
+
+    $(k+'Min').onchange = ()=>{
+
+        let v = Math.max(
+
+            1,
+
+            Math.min(
+
+                +$(k+'Min').max,
+
+                Math.round(
+                    +$(k+'Min').value || 1
+                )
+
+            )
+
+        );
+
+        change(x=>{
+
+            if(
+                elapsed(x) === 0 &&
+                x.since === null
+            ){
+
+                x[k] = v;
+
+            }
+
+        });
+
+    };
+
+}
+
+
+// ========================================
+// 17. 导出备份
+// ========================================
+
+$('export').onclick = ()=>{
+
+    let a =
+        document.createElement('a');
+
+    const url = URL.createObjectURL(
+
+        new Blob(
+
+            [JSON.stringify(d)],
+
+            {
+                type:'application/json'
+            }
+
+        )
+
+    );
+
+    a.href = url;
+
+    a.download =
+        'reading-backup.json';
+
+    a.click();
+
+    setTimeout(
+        ()=>URL.revokeObjectURL(url),
+        1000
+    );
+
+};
+
+
+// ========================================
+// 18. 导入备份
+// ========================================
+
+$('import').onclick = ()=>{
+
+    $('file').click();
+
+};
+
+$('file').onchange = async()=>{
+
+    try{
+
+        if(!$('file').files.length){
+            return;
+        }
+
+        let x = JSON.parse(
+
+            await $('file').files[0].text()
+
+        );
+
+        if(
+
+            !Array.isArray(x.logs) ||
+
+            !x.logs.every(
+
+                l=>
+
+                    typeof l.id === 'string' &&
+
+                    Number.isFinite(l.seconds) &&
+
+                    l.seconds >= 0 &&
+
+                    Number.isFinite(l.date)
+
+            )
+
+        ){
+
+            throw Error('无效备份');
+
+        }
+
+        if(confirm('合并备份记录？')){
+
+            await change(y=>{
+
+                let ids = new Set(
+
+                    y.logs.map(
+                        l=>l.id
+                    )
+
+                );
+
+                for(const l of x.logs){
+
+                    if(!ids.has(l.id)){
+
+                        y.logs.push(l);
+
+                        ids.add(l.id);
+
+                    }
+
+                }
+
+            });
+
+        }
+
+    }catch(e){
+
+        alert(e.message);
+
+    }finally{
+
+        $('file').value = '';
+
+    }
+
+};
+
+
+// ========================================
+// 19. 后台与网络状态监听
+// ========================================
+
+// 切换回网页时立即更新时间
+
+document.addEventListener(
+
+    'visibilitychange',
+
+    ()=>{
+
+        tick();
+
+    }
+
+);
+
+
+// 浏览器重新取得焦点
+
+window.addEventListener(
+
+    'focus',
+
+    ()=>{
+
+        tick();
+
+    }
+
+);
+
+
+// 网络重新连接
+
+window.addEventListener(
+
+    'online',
+
+    ()=>{
+
+        tick();
+
+    }
+
+);
+
+
+// 网络断开
+
+window.addEventListener(
+
+    'offline',
+
+    ()=>{
+
+        tick();
+
+    }
+
+);
+
+
+// ========================================
+// 20. 启动系统
+// ========================================
+
+render();
+
+// 每500毫秒更新时间及分页标签
+
+setInterval(tick,500);
+
+</script>
+
+</body>
+</html>
